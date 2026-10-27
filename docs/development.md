@@ -93,3 +93,19 @@ Owner decisions, 27 October 2026, for the first round (slices in the
     for development and the end-to-end tests, and as a small desktop app
     (open, play, edit and save `.musicxml` and `.mxl`) that shows how a host
     integrates Donizetti.
+
+Owner decisions, 27 October 2026, on what the editor looks like:
+
+15. **Dark mode draws the score light on dark**: in a dark theme the score's
+    paper goes dark and its ink light (OpenSheetMusicDisplay's dark mode),
+    following `prefers-color-scheme` or the host's `theme`. Exports (SVG, PDF)
+    and printing are always black on white.
+16. **Lyrics and chord symbols are typed inline at the note**, as in
+    MuseScore: a small field under the note (lyrics, Ctrl+L) or above it
+    (chord symbols, Ctrl+K); Space goes to the next note, `-` to the next
+    syllable, `_` adds an extender, Esc ends.
+17. **The palette is a collapsible side panel** beside the score (key, time,
+    tempo, barlines, repeats, endings, jumps), applying to the selection; at
+    narrow widths it moves under the toolbar.
+18. **Save writes the format the score was read in**: `.mxl` stays `.mxl`,
+    `.musicxml` stays `.musicxml`; a host may offer the other as Save As.
