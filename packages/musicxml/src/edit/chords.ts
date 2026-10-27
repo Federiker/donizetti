@@ -4,6 +4,7 @@ import { childElement, childElements, childNumber } from "../xml";
 import { mappedNote } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
 import { writtenLength } from "./lengths";
+import { rejoinLyrics } from "./lyrics";
 import { createNote, notePitch, templateOfNote } from "./note-elements";
 import { type Changes, finish, noChanges, operate, pitchesChanged } from "./operation";
 import { checkPitch } from "./overwrite";
@@ -108,6 +109,8 @@ export function toRest(document: ScoreDocument, note: Element): Element {
     const measure = mappedNote(mapScore(root)!, element).measure;
     pitchesChanged(changes, root, untie(element));
     const neighbours = [...(previousChord(element) ?? []), ...(nextChord(element) ?? [])];
+    // A rest takes no lyrics (owner decision, 27 October 2026): the verse's hyphens around them made to agree.
+    if (childElement(element, "lyric")) rejoinLyrics(mapScore(root)!, new Set([element]));
     const pitch = childElement(element, "pitch")!;
     insertElement(element, createElement(element.ownerDocument, "rest"), pitch);
     removeElement(pitch);

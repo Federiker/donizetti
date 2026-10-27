@@ -2,6 +2,7 @@ import { EPSILON, mapScore, midiOf, type Pitch, type ScoreMap } from "../score-m
 import type { ScoreDocument } from "../score-document";
 import { childElement, childElements } from "../xml";
 import { divisionsFactor, scaleDivisions, toDivisions } from "./divisions";
+import { rejoinLyrics } from "./lyrics";
 import { ScoreEditError } from "./edit-error";
 import { beatOf, isNoteLength, type NoteLength, restLengths, splitLength, wholeNotesOf } from "./lengths";
 import { mappedNote, type ScorePosition } from "./edit-context";
@@ -60,6 +61,8 @@ type Span = {
   length?: NoteLength;
   /** A chord whose notes are kept as the span's first notes (a length changed), with their lyrics and the rest. */
   reuse?: Element[];
+  /** The span's first notes continue a tie from the note before (T in note input): they take no lyrics. */
+  continuesTie?: boolean;
 };
 
 type Context = { xml: XMLDocument; voice: Voice; template: NoteTemplate; changes: Changes; partners: Element[] };
@@ -126,7 +129,10 @@ function shorten(context: Context, event: VoiceEvent, duration: number): VoiceEv
  * Writes events over a measure's voice from `from` to `to` (divisions), as MuseScore's note input overwrites:
  * a note or rest begun before `from` is cut short there, those inside are removed (their ties undone at both
  * ends), the part of one reaching past `to` becomes rests, and a gap before `from` is filled with rests. Chord
- * symbols, directions and the measure's other elements keep their times (`arrange`).
+ * symbols, directions and the measure's other elements keep their times (`arrange`). The lyrics of the note
+ * removed at `from` go to the first note written when `lyrics` says so (a note, not a rest nor a tied
+ * continuation); those of every other note removed are dropped, the verse's hyphens before and after them made
+ * to agree (`rejoinLyrics`).
  */
 function overwriteMeasure(
   context: Context,
@@ -141,6 +147,15 @@ function overwriteMeasure(
   let tail: VoiceEvent[] = [];
   const removed: Element[] = [];
   const end = contentEnd(voice.events);
+  const first = inserted[0]?.notes[0];
+  const handsOver = (event: VoiceEvent) => event.start === from && options.lyrics && first !== undefined;
+  // The notes whose lyrics go, read before anything changes: the syllables around them are still in place.
+  const dropped = voice.events
+    .filter((event) => event.start >= from && event.start < to && event.notes[0] !== options.reuse && !handsOver(event))
+    .flatMap((event) => event.notes);
+  if (dropped.some((note) => childElement(note, "lyric"))) {
+    rejoinLyrics(mapScore(context.xml.documentElement)!, new Set(dropped));
+  }
   for (const event of voice.events) {
     const eventEnd = event.start + event.duration;
     if (eventEnd <= from) {
@@ -162,10 +177,9 @@ function overwriteMeasure(
       continue;
     }
     for (const note of event.notes) partners.push(...untie(note));
-    const first = inserted[0]?.notes[0];
-    if (event.start === from && options.lyrics && first) {
+    if (handsOver(event)) {
       for (const lyric of event.notes.flatMap((note) => childElements(note, "lyric"))) {
-        first.appendChild(stripLayout(lyric));
+        first!.appendChild(stripLayout(lyric));
       }
     }
     removed.push(...event.notes);
@@ -294,7 +308,9 @@ export function writeSpan(
       at += duration;
     }
     overwriteMeasure(context, from, at, inserted, {
-      lyrics: span.pitches.length > 0,
+      // Only a note that starts there takes the lyrics of the note it replaces: a rest or a note tied from the
+      // one before (in the next measure, or T in note input) drops them (owner decision, 27 October 2026).
+      lyrics: span.pitches.length > 0 && index === 0 && !span.continuesTie,
       reuse: index === 0 ? (span.reuse?.[0] ?? null) : null,
     });
     changes.rhythm.add(segment.measure);
@@ -313,7 +329,8 @@ export function writeSpan(
  * is replaced — notes and rests cut short, split or removed, the rest of a note reaching past it left as rests;
  * a note crossing the barline is split and tied into the next measure (one added at the end, filled with a
  * measure rest, when there is none; `position` may also be the end of the score). Chord symbols and directions
- * keep their times; the lyrics of a note replaced at the same onset go to the new note. Beams, stems and
+ * keep their times; the lyrics of a note replaced at the same onset go to the new note (a rest or a tied
+ * continuation in the next measure drops them, `rejoinLyrics` keeping the hyphens in agreement). Beams, stems and
  * accidentals are written again in the measures it touched. Returns the notes written (one for each tied piece)
  * and the cursor's next position.
  */

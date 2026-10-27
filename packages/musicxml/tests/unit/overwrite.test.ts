@@ -113,6 +113,30 @@ describe("writeNote", () => {
     expect(scoreText(resting)).not.toContain(">la<");
   });
 
+  it("drops the lyrics of a note replaced by a tied continuation, the hyphens around them agreeing", () => {
+    const syllable = (syllabic: string, text: string) =>
+      `<lyric number="1"><syllabic>${syllabic}</syllabic><text>${text}</text></lyric>`;
+    // Hap-py | birth-day: a whole note from "py" runs into the next measure over "birth".
+    const text = score(
+      attributes(1) +
+        note("C", 4, 2, "half", syllable("begin", "Hap")) +
+        note("D", 4, 2, "half", syllable("end", "py")),
+      note("E", 4, 2, "half", syllable("begin", "birth")) + note("F", 4, 2, "half", syllable("end", "day")),
+    );
+    const document = readScore(text);
+    const edit = writeNote(document, { measure: 0, onset: 0.5 }, { pitch: D4, length: { type: "whole" } });
+    expect(summary(document)).toEqual([
+      ["C4 half", "D4 half-"],
+      ["~D4 half", "F4 half"],
+    ]);
+    // "py" goes to the new note; "birth" goes with its note, so "day" is a word of its own.
+    expect(edit.notes[0]!.getElementsByTagName("text")[0]!.textContent).toBe("py");
+    expect(edit.notes[1]!.getElementsByTagName("lyric")).toHaveLength(0);
+    expect(scoreText(document)).not.toContain(">birth<");
+    expect(scoreText(document)).toContain(syllable("single", "day"));
+    expect(scoreText(document)).toContain(syllable("begin", "Hap"));
+  });
+
   it("keeps chord symbols and directions at their times, with an offset inside a note", () => {
     const text = score(attributes(1) + harmony("C") + note("C", 4, 2, "half") + harmony("G") + note("E", 4, 2, "half"));
     const document = readScore(text);

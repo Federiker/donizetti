@@ -125,6 +125,17 @@ describe("addTiedNote", () => {
     expect(again.notes).toHaveLength(2);
   });
 
+  it("drops the lyrics of the note it writes over: a tied note takes none", () => {
+    const lyric = `<lyric number="1"><syllabic>single</syllabic><text>la</text></lyric>`;
+    const { document, notes } = notesOf(
+      score(attributes(1) + note("C", 4, 2, "half") + note("D", 4, 2, "half", lyric)),
+    );
+    const edit = addTiedNote(document, notes[0]!);
+    expect(summary(document)).toEqual([["C4 half-", "~C4 half"]]);
+    expect(edit.notes[0]!.getElementsByTagName("lyric")).toHaveLength(0);
+    expect(scoreText(document)).not.toContain("<lyric");
+  });
+
   it("ties a whole chord, and refuses rests", () => {
     const { document, notes } = notesOf(
       score(

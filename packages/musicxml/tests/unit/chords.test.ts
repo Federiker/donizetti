@@ -129,4 +129,20 @@ describe("removeChordNote and toRest", () => {
     expect(written).toContain(`<beam number="1">begin</beam></note><note><pitch><step>F</step>`);
     expect(editErrorOf(() => toRest(document, notes[1]!))).toBe("not_a_note");
   });
+
+  it("drops a note's lyrics with it, the word ending on the syllable before", () => {
+    const syllable = (syllabic: string, text: string) =>
+      `<lyric number="1"><syllabic>${syllabic}</syllabic><text>${text}</text></lyric>`;
+    const { document, notes } = notesOf(
+      score(
+        attributes(1) +
+          note("C", 4, 2, "half", syllable("begin", "Hap")) +
+          note("D", 4, 2, "half", syllable("end", "py")),
+      ),
+    );
+    toRest(document, notes[1]!);
+    expect(scoreText(document)).toContain(
+      `${syllable("single", "Hap")}</note><note><rest/><duration>2</duration><voice>1</voice><type>half</type></note>`,
+    );
+  });
 });

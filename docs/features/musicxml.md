@@ -280,9 +280,12 @@ for each tied piece) and `next`, the cursor's position after them.
   an `<offset>` no longer needed goes. Grace notes and other elements that take
   no offset stay before the next note. Left barlines stay first, right ones
   last.
-- The lyrics of a note replaced at the same onset go to the new note (also to
-  the tied piece in the next measure); a rest takes none. Ties of the notes
-  removed or cut short are undone at both ends.
+- The lyrics of a note replaced at the same onset go to the new note. A rest
+  and a tied continuation take none (owner decisions, 27 October 2026): a note
+  replaced by a rest, or by the tied piece of a long note entered across the
+  barline, loses its lyrics, as does every other note written over; the
+  verse's hyphens before and after them are made to agree, as `removeLyric`
+  does. Ties of the notes removed or cut short are undone at both ends.
 - `setLength(document, note, length)`: a longer note (with its chord)
   overwrites what follows, across barlines with ties; a shorter one leaves
   rests. The note keeps its lyrics and everything else; a tie on from it is
@@ -313,7 +316,8 @@ for each tied piece) and `next`, the cursor's position after them.
   its place, its lyrics and its notations other than ties.
 - `toRest(document, note)` is Delete: a note alone becomes a rest of its length
   (its pitch, accidental, stem, notehead, beams and lyrics go, everything else
-  stays); a note of a chord is removed from it.
+  stays; the word around a syllable gone ends or begins beside it); a note of
+  a chord is removed from it.
 
 ### Ties
 
@@ -326,7 +330,8 @@ for each tied piece) and `next`, the cursor's position after them.
   unties it; returns the note it is tied to, or null.
 - `addTiedNote(document, note, length?)` (T in note input) adds after a note's
   chord a chord of the same pitches tied to it, of its length unless another
-  is given, overwriting what follows as `writeNote` does.
+  is given, overwriting what follows as `writeNote` does; the tied chord takes
+  no lyrics from the note it writes over.
 
 ### Accidentals, beams and stems
 

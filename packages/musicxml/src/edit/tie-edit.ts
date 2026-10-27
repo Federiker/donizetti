@@ -49,7 +49,7 @@ export function addTiedNote(document: ScoreDocument, note: Element, length?: Not
       root,
       positionAt(place.map, place.measure, place.onset + place.length),
       wholeNotesOf(written),
-      { pitches: chord.map((member) => notePitch(member)!), length: written },
+      { pitches: chord.map((member) => notePitch(member)!), length: written, continuesTie: true },
       changes,
     );
     for (const [index, member] of chord.entries()) {
