@@ -88,6 +88,19 @@ describe("insertMeasures and appendMeasures", () => {
     expect(numbers).toEqual(["0a", "1", "1a", "1b", "X1"]);
   });
 
+  it("goes on with the letters after a lettered number, skipping numbers taken, past z", () => {
+    const document = readScore(score(OPENING + note("C"), note("D"), note("E")).replace(`number="3"`, `number="1b"`));
+    const numbers = () =>
+      Array.from(document.root.getElementsByTagName("measure")).map((measure) => measure.getAttribute("number"));
+    // After 2 comes 2a; after 1, 1a; after 1a, 1c, as 1b is taken.
+    insertMeasures(document, 2, 1);
+    insertMeasures(document, 1, 2);
+    expect(numbers()).toEqual(["1", "1a", "1c", "2", "2a", "1b"]);
+    // After 1b, at the end: 1d to 1z (1c is taken), then 1aa, 1bb…
+    appendMeasures(document, 25);
+    expect(numbers().slice(-3)).toEqual(["1z", "1aa", "1bb"]);
+  });
+
   it("refuses counts below one, places outside the part, no time signature and lengths the divisions cannot write", () => {
     const document = readScore(score(OPENING + note("C")));
     expect(refusal(document, () => insertMeasures(document, 0, 0))).toBe("invalid_count");

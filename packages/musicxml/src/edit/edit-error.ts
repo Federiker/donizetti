@@ -55,11 +55,6 @@ export type ScoreEditErrorCode =
   | "duplicate_pitch"
   /** No next note of the same pitch to tie to. */
   | "no_tie_partner"
-  /**
-   * Measures would have to be added or removed, but their numbers are not plain consecutive integers, so how to
-   * number them is for the user to say; `params.number` is the number that stopped it.
-   */
-  | "measure_numbers"
   /** A key signature other than −7 to 7 fifths. */
   | "invalid_key"
   /** A time signature other than a positive whole number of beats over a power of two up to 1024. */

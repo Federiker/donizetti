@@ -193,6 +193,12 @@ describe("writeNote", () => {
     expect(measures.map((measure) => measure.getAttribute("number"))).toEqual(["X1", "X1a"]);
     expect(measures[0]!.getElementsByTagName("barline")).toHaveLength(0);
     expect(scoreText(document)).toContain(`</note>${final}</measure></part>`);
+    // A note made longer runs past the end the same way.
+    const longer = readScore(text);
+    setLength(longer, longer.root.getElementsByTagName("note")[0]!, { type: "whole", dots: 1 });
+    expect(
+      Array.from(longer.root.getElementsByTagName("measure")).map((measure) => measure.getAttribute("number")),
+    ).toEqual(["X1", "X1a"]);
   });
 
   it("refuses to cut into a tuplet", () => {

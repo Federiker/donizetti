@@ -1,9 +1,10 @@
 import { EPSILON, mapScore, type ScoreMap } from "../score-map";
-import { childElement, childElements } from "../xml";
+import { childElement } from "../xml";
 import { divisionsFactor, scaleDivisions, toDivisions } from "./divisions";
 import { ScoreEditError } from "./edit-error";
 import { beatOf, type NoteLength, restLengths, splitLength, wholeNotesOf } from "./lengths";
-import { capacityOf, consecutiveNumbers } from "./measures";
+import { numberMeasures, plainNumbering } from "./measure-numbers";
+import { capacityOf } from "./measures";
 import {
   createNote,
   type NoteTemplate,
@@ -19,10 +20,6 @@ import { createElement, insertElement, removeElement } from "./xml-edit";
 
 const cannotRebar = (reason: string, measure: number) =>
   new ScoreEditError("cannot_rebar", { reason, measure: String(measure) });
-
-/** The first measure number that is not one more than the one before (or not an integer). */
-const firstIrregular = (numbers: string[]) =>
-  numbers.find((_, index) => !consecutiveNumbers(numbers.slice(0, index + 1))) ?? "";
 
 /** An element of the stretch other than a timed note, at its time from the stretch's start; `measure` it came from. */
 type Placed = PlacedElement & { measure: number };
@@ -128,8 +125,8 @@ function gapRests(bars: Bars, index: number, from: number, to: number): VoiceEve
  * bar it starts in, split and tied where it crosses a barline; gaps (the last bar's end, measure rests of the
  * old length) are filled with rests; chord symbols, directions and the other elements keep their times, a left
  * barline the bar it starts, a right one the bar it ends, a `<print>` the start of its bar. The old measure
- * elements are kept in order, new ones added after them or the extra ones removed; the measure numbers from the
- * stretch on are renumbered when the count changes. Returns how many bars the stretch now has.
+ * elements are kept in order, new ones added after them or the extra ones removed, and numbered as new measures
+ * are (`numberMeasures`) when the count changes. Returns how many bars the stretch now has.
  */
 export function rebar(root: Element, start: number, end: number, length: number, changes: Changes): number {
   let map = mapScore(root)!;
@@ -153,11 +150,7 @@ export function rebar(root: Element, start: number, end: number, length: number,
   const { events, others, dropped, total } = streamOf(map, start, end, bar);
   const count = Math.max(1, Math.ceil(total / bar - EPSILON));
 
-  // What must be decided by the user rather than here: numbers to change, barlines and keys inside a bar.
-  if (count !== end - start) {
-    const numbers = map.measures.slice(start).map((mapped) => mapped.number);
-    if (!consecutiveNumbers(numbers)) throw new ScoreEditError("measure_numbers", { number: firstIrregular(numbers) });
-  }
+  // What must be decided by the user rather than here: barlines and keys inside a bar.
   for (const other of others) {
     const onBarline = other.time % bar === 0;
     if (other.place !== "time" && !onBarline && !(other.place === "end" && other.time === total)) {
@@ -182,18 +175,16 @@ export function rebar(root: Element, start: number, end: number, length: number,
   // The measure elements: the stretch's own, then new ones (each holding a placeholder that gives it its layout).
   const xml = root.ownerDocument;
   const elements = map.measures.slice(start, end).map((mapped) => mapped.element);
+  const numbering = plainNumbering(map.part);
   const placeholders: Element[] = [];
+  const added: Element[] = [];
   while (elements.length < count) {
     const previous = elements.at(-1)!;
     const placeholder = createElement(xml, "note");
-    const number = String(Number(previous.getAttribute("number")) + 1);
-    elements.push(
-      insertElement(
-        previous.parentElement!,
-        createElement(xml, "measure", [placeholder], { number }),
-        previous.nextElementSibling,
-      ),
-    );
+    // Numbered once the bars are in place (`numberMeasures`).
+    const measure = createElement(xml, "measure", [placeholder], { number: "" });
+    elements.push(insertElement(previous.parentElement!, measure, previous.nextElementSibling));
+    added.push(measure);
     placeholders.push(placeholder);
   }
 
@@ -246,14 +237,6 @@ export function rebar(root: Element, start: number, end: number, length: number,
   for (const placeholder of placeholders) removeElement(placeholder);
   // The old measures no longer needed: their notes and elements have all gone into the new bars (measure rests aside).
   for (const element of elements.slice(count)) removeElement(element);
-
-  if (count !== end - start) {
-    const measures = childElements(map.part, "measure");
-    let number = Number(measures[start]!.getAttribute("number"));
-    for (const element of measures.slice(start)) {
-      if (element.getAttribute("number") !== String(number)) element.setAttribute("number", String(number));
-      number += 1;
-    }
-  }
+  if (count !== end - start) numberMeasures(map.part, numbering, added);
   return count;
 }

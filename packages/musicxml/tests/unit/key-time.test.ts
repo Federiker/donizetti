@@ -138,6 +138,26 @@ describe("setTime", () => {
     expect(mapScore(document.root)!.measures.map((measure) => measure.number)).toEqual(["0", "1", "2", "3", "4", "5"]);
   });
 
+  it("numbers new bars among numbers that are not 1, 2, 3… after the one before, with a letter", () => {
+    const text = score(
+      attributes(1) + note("C", 4, 4, "whole"),
+      note("D", 4, 4, "whole"),
+      note("E", 4, 4, "whole"),
+    ).replace(`number="2"`, `number="2a"`);
+    const document = readScore(text);
+    setTime(document, 0, 2, 4);
+    // The three old measures keep their numbers in order; the new ones follow the last of them.
+    expect(mapScore(document.root)!.measures.map((measure) => measure.number)).toEqual([
+      "1",
+      "2a",
+      "3",
+      "3a",
+      "3b",
+      "3c",
+    ]);
+    expect(summary(document)).toHaveLength(6);
+  });
+
   it("writes the signature itself as it should be: a repeat removed, a symbol that no longer fits dropped", () => {
     const common = score(
       `<attributes><divisions>1</divisions><time symbol="common"><beats>4</beats><beat-type>4</beat-type></time></attributes>${note("C", 4, 4, "whole")}`,
@@ -212,10 +232,6 @@ describe("setTime", () => {
           `<attributes><divisions>2</divisions></attributes>${note("C", 4, 8, "whole")}`,
         ),
         "cannot_rebar",
-      ],
-      [
-        score(attributes(1) + note("C", 4, 4, "whole"), note("C", 4, 4, "whole")).replace(`number="2"`, `number="2a"`),
-        "measure_numbers",
       ],
     ];
     for (const [text, code] of cases) {

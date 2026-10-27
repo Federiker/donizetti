@@ -200,8 +200,14 @@ of these back, its own exports included, as plain staff text, not as jumps.
   stopped in them begins or stops beside them; ties into or out of them and
   hyphens across them are taken away. A part keeps one measure
   (`last_measure`).
-- Measures numbered 1, 2, 3… (from any start) are renumbered; others keep
-  their numbers, and new ones take the number before with a letter (12a).
+- **Numbering** (owner decision, 27 October 2026), wherever measures are
+  added or removed (`insertMeasures`, `appendMeasures`, `removeMeasures`, a
+  note running past the end in `writeNote`, `setLength` and `addTiedNote`,
+  re-barring in `setTime`): measures numbered 1, 2, 3… (from any start, a
+  pickup's 0 included) are renumbered so. Others keep their numbers, and a
+  new measure takes the number of the one before it with a letter, never
+  refused: 12a and 12b after 12, 12c after 12b, the next letter free when one
+  is taken (a to z, then aa, bb…); measures put first are 0a, 0b….
 
 ## Editing: notes and rhythm
 
@@ -367,9 +373,9 @@ for each tied piece) and `next`, the cursor's position after them.
   `width` included, as written), new ones added after them or the extra ones
   removed. A pickup (`implicit="yes"`) at the measure keeps its length and the
   bars after it are re-barred. Returns the measures now in the new time.
-- Measure numbers are renumbered when the count changes **only** if they are
-  plain consecutive integers from there to the end (else `measure_numbers`).
-  `cannot_rebar` says why the music cannot be re-barred without the user:
+- When the count changes, the measures are numbered as
+  [new measures are](#measures): 1, 2, 3… renumbered, other numbers kept and
+  the new bars lettered after the one before. `cannot_rebar` says why the music cannot be re-barred without the user:
   `pickup` (an incomplete measure inside), `key` (a key change that would fall
   inside a new bar), `barline` (a repeat, ending or other barline that would)
   or `divisions` (the divisions change inside).

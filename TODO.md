@@ -121,8 +121,6 @@ The first round (owner decisions, 27 October 2026; see
     degrees written with `print-object="no"` beside `text="7sus4"`, as
     MusicXML 4.0 asks, where MuseScore writes `text="74"` with the degree
     printed.
-  - [ ] New measures among measure numbers that are not 1, 2, 3…: numbered
-    after the one before with a letter (12a) or refused.
   - [ ] Inserting measures first: only the opening `<attributes>` move to the
     new first measure; the opening tempo and `<print>` layout stay on the
     measure they were on.

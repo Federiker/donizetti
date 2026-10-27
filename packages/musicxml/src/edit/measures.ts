@@ -6,6 +6,7 @@ import { editableMap, insertInMeasure } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
 import { endingsOf } from "./endings";
 import { rejoinLyrics } from "./lyrics";
+import { numberMeasures, plainNumbering } from "./measure-numbers";
 import { createNote, templateOf } from "./note-elements";
 import { hasTie, removeTie } from "./ties";
 import {
@@ -20,20 +21,6 @@ import {
 
 /** What a measure's `<attributes>` set that later measures go by: removing measures must not lose a change. */
 const CARRIED = ["divisions", "key", "time", "clef", "transpose"] as const;
-
-/** Measure numbers written 1, 2, 3… (or from any start, a pickup's 0 included): renumbered after a change. */
-function consecutiveFrom(measures: MappedMeasure[]): number | null {
-  if (!measures.every((measure) => /^\d+$/.test(measure.number))) return null;
-  const first = Number(measures[0]?.number ?? 1);
-  return measures.every((measure, index) => Number(measure.number) === first + index) ? first : null;
-}
-
-function renumber(part: Element, first: number) {
-  for (const [index, measure] of childElements(part, "measure").entries()) {
-    const number = String(first + index);
-    if (measure.getAttribute("number") !== number) measure.setAttribute("number", number);
-  }
-}
 
 /** The elements written before a measure's first note (its print, barlines, attributes, directions…). */
 function leading(measure: Element): Element[] {
@@ -52,8 +39,6 @@ function divisionsAtEnd(measure: MappedMeasure): number {
     .filter((divisions): divisions is number => divisions !== null);
   return set.at(-1) ?? measure.divisions;
 }
-
-const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
 /**
  * Adds empty measures before a measure of the part (`beforeIndex` the number of measures to add them at the
@@ -79,20 +64,15 @@ export function addMeasures(map: ScoreMap, beforeIndex: number, count: number, l
       length: String(wholeNotes),
     });
   }
-  const first = consecutiveFrom(map.measures);
-  const base = beforeIndex === 0 ? "0" : source.number;
+  const numbering = plainNumbering(map.part);
   const following = map.measures[beforeIndex]?.element ?? null;
   const xml = map.part.ownerDocument;
   const template = templateOf(map.part);
   const added: Element[] = [];
   for (let index = 0; index < count; index += 1) {
-    const number =
-      first === null
-        ? base + LETTERS[index % LETTERS.length]!.repeat(1 + Math.floor(index / LETTERS.length))
-        : String(first + beforeIndex + index);
-    // A whole-measure rest, written as the part's notes are (MuseScore writes its voice).
+    // A whole-measure rest, written as the part's notes are (MuseScore writes its voice); numbered below.
     const rest = createNote(xml, template, { pitch: null, duration: Math.round(duration), length: null });
-    added.push(insertElement(map.part, createElement(xml, "measure", [rest], { number }), following));
+    added.push(insertElement(map.part, createElement(xml, "measure", [rest], { number: "" }), following));
   }
   if (beforeIndex === 0) {
     // The score's opening key, time and clef stay at its start.
@@ -114,7 +94,7 @@ export function addMeasures(map: ScoreMap, beforeIndex: number, count: number, l
       moveElement(barline, added.at(-1)!);
     }
   }
-  if (first !== null) renumber(map.part, first);
+  numberMeasures(map.part, numbering, added);
   return added;
 }
 
@@ -198,7 +178,7 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
   const before = map.measures.slice(0, fromIndex);
   const previous = map.measures[fromIndex - 1] ?? null;
   const next = map.measures[end] ?? null;
-  const first = consecutiveFrom(map.measures);
+  const numbering = plainNumbering(map.part);
   const endings = endingsOf(map);
   const removedNotes = removed.flatMap((measure) => measure.notes);
   const firstNotes = firstTimed(removedNotes);
@@ -264,7 +244,7 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
     }
     rejoinLyrics(map, new Set(removed.flatMap((measure) => measure.notes.map((note) => note.element))));
     for (const measure of removed) removeElement(measure.element);
-    if (first !== null) renumber(map.part, first);
+    numberMeasures(map.part, numbering, []);
   });
 }
 
@@ -299,11 +279,4 @@ export function addAttributesAtStart(measure: Element, children: Element[]): Ele
         child.localName !== "print" && !(child.localName === "barline" && child.getAttribute("location") === "left"),
     ) ?? null;
   return insertElement(measure, createElement(measure.ownerDocument, "attributes", children), before);
-}
-
-/** Whether measure numbers are plain integers counting up by one: the only ones the editor renumbers. */
-export function consecutiveNumbers(numbers: string[]): boolean {
-  return numbers.every(
-    (number, index) => /^\d+$/.test(number) && (index === 0 || Number(number) === Number(numbers[index - 1]) + 1),
-  );
 }

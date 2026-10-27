@@ -98,9 +98,9 @@ const changesTime = (measure: Element) => measure.getElementsByTagName("time").l
  * repeats the one in force is removed instead), and puts the music up to the next time change into bars of the
  * new length (`rebar`): notes crossing a new barline split and tied, chord symbols, directions and lyrics at
  * their times, the last bar filled with rests, beams and accidentals written again. A pickup at the measure keeps
- * its length. Measure numbers are renumbered when bars are added or removed only if they are plain consecutive
- * integers (else `measure_numbers`); `cannot_rebar` when a pickup, a key change or a barline (a repeat, an
- * ending) would fall inside a new bar. Returns the measures now in the new time, from `from` to `to` (exclusive).
+ * its length. When bars are added or removed, measures numbered 1, 2, 3… are renumbered; otherwise new bars take
+ * the number before with a letter (`numberMeasures`). `cannot_rebar` when a pickup, a key change or a barline (a
+ * repeat, an ending) would fall inside a new bar. Returns the measures now in the new time, from `from` to `to` (exclusive).
  */
 export function setTime(
   document: ScoreDocument,
