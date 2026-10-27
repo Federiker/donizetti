@@ -35,12 +35,14 @@ The first round (owner decisions, 27 October 2026; see
   found from a measure and a time in it (the click-to-XML mapping).
 - [ ] The edit operations, each tested on plain XML, with a round trip proving
   the rest of the file is unchanged:
-  - [ ] Pitch (step, alter, octave; the accidental against the key), length
-    and dots, rest, insert and delete with the bar refilled, notes split at
-    the barline with ties.
-  - [ ] Ties (`<tie>` and `<notations><tied>`), beams written by beat.
+  - [x] Pitch (step, alter, octave; the accidental against the key), length
+    and dots, rest, writing at the cursor and delete with the bar refilled,
+    notes split at the barline with ties.
+  - [ ] Insert (the rest of the bar shifted on rather than overwritten) and
+    tuplets (`<time-modification>`, divisions in threes).
+  - [x] Ties (`<tie>` and `<notations><tied>`), beams written by beat.
   - [x] Lyrics (syllabic, extend, verses), chord symbols (`<harmony>`).
-  - [ ] Key and time.
+  - [x] Key and time (the music re-barred, measures renumbered).
   - [x] Tempo, repeat and ending barlines, navigation marks (segno, coda,
     D.C., D.S., Fine), measures added and removed.
 - [x] Playback (`@donizetti/playback`): jerome's score timing and MIDI file,

@@ -202,3 +202,181 @@ of these back, its own exports included, as plain staff text, not as jumps.
   (`last_measure`).
 - Measures numbered 1, 2, 3… (from any start) are renumbered; others keep
   their numbers, and new ones take the number before with a letter (12a).
+
+## Editing: notes and rhythm
+
+The edit operations behind MuseScore 4's note input (decision 8), in
+`src/edit/`. Each takes the `ScoreDocument` and changes its DOM as one edit:
+`revision` rises by one, so undo and redo can tell versions apart. Each first
+checks that the score is editable (`not_editable` otherwise) and that the notes
+given are its part's (`not_in_score`), and is tried on a copy of the score
+before the real one, so an edit that cannot be made throws its
+`ScoreEditError` with **nothing changed**. Positions are `{ measure, onset }`:
+the measure's index in the part and whole notes from its start, as in the
+score map; `{ measure: measures.length, onset: 0 }` is the end of the score.
+
+After every edit, what follows from it is written again in the measures it
+touched: beams (when the rhythm changed), stems (of the notes changed, their
+chords and beamed groups) and accidentals (also in the measures of tie
+partners whose ties changed). New elements go where MusicXML's schema puts
+them, laid out as their siblings are, MuseScore's hanging end tags included;
+elements moved keep their own text, so a moved chord symbol is written back
+byte for byte.
+
+### Lengths and divisions
+
+- A `NoteLength` is a `<type>` (`1024th` to `maxima`, `NOTE_TYPES`) with 0 to
+  4 dots; `wholeNotesOf` gives its length (a dotted quarter is 3/8),
+  `noteLengthOf` the one length of a duration, if any, and `splitLength` the
+  tied notes any length is written as, each the longest plain or dotted type
+  that fits (5/8 is a half and an eighth).
+- `<type>`, `<dot>` and `<duration>` always agree. A note becoming a whole note
+  or longer loses its `<stem>`; one becoming shorter gets one where the part
+  writes stems.
+- When a length, a position or the beat of the measure is not a whole number
+  of `<divisions>`, the divisions are multiplied by the power of two that makes
+  it so: every `<divisions>` of the part (in its first `<attributes>` and any
+  later change), and every `<duration>` (notes, `<backup>`, `<forward>`,
+  figured bass) and `<offset>` with them, so every note keeps its length. A
+  part without `<divisions>` gets one in its first measure.
+- **Not this round: tuplets.** An edit that would cut into a note with
+  `<time-modification>`, or re-bar one, throws `unsupported_rhythm`; notes
+  outside a tuplet can be edited around it.
+
+### Writing at the cursor
+
+`writeNote(document, position, { pitch | null, length })` is A–G and 0 in note
+input: it **overwrites** as MuseScore does, and returns the notes written (one
+for each tied piece) and `next`, the cursor's position after them.
+
+- Notes and rests begun before the cursor are cut short there (split into tied
+  notes when one type cannot write what is left), those inside are removed,
+  and the part of one reaching past the new note is left as rests. A measure
+  that stops short of the cursor is filled with rests up to it.
+- Rests are written as MuseScore writes them: each the longest that fits,
+  starting on a multiple of its own length and, off the beat, ending by the
+  next beat (after a quarter in 4/4, a quarter rest then a half; after a
+  quarter in 6/8, an eighth then a dotted quarter); dotted rests only of a beat
+  or more, in compound time. A whole empty measure is a measure rest,
+  `<rest measure="yes"/>` without a `<type>`, as MuseScore writes it.
+- A note crossing the barline is split and tied into the next measure; past
+  the last measure, measures are added, each holding a measure rest and
+  numbered after the last (`measure_numbers` when the last number is not a
+  plain integer). The barlines stay where they were.
+- Chord symbols, directions, sounds and the other elements keep their time:
+  before the note that starts at it, or, when it now falls inside a note,
+  before that note with an `<offset>` (`<harmony>`, `<direction>`, `<sound>`);
+  an `<offset>` no longer needed goes. Grace notes and other elements that take
+  no offset stay before the next note. Left barlines stay first, right ones
+  last.
+- The lyrics of a note replaced at the same onset go to the new note (also to
+  the tied piece in the next measure); a rest takes none. Ties of the notes
+  removed or cut short are undone at both ends.
+- `setLength(document, note, length)`: a longer note (with its chord)
+  overwrites what follows, across barlines with ties; a shorter one leaves
+  rests. The note keeps its lyrics and everything else; a tie on from it is
+  undone when its end moves.
+
+### Pitches, chords and rests
+
+- `setPitch(document, note, pitch)` sets `<step>`, `<alter>` (none for a
+  natural) and `<octave>`; a rest becomes a note of its length (a measure rest
+  needs a length one type can write, else `unsupported_rhythm`). A tie to or
+  from it is undone at both ends when the pitch changes.
+- `transpose(document, note, semitones)` is Up and Down (±1) and Ctrl+Up and
+  Down (±12). Spelt as the key signature has it (F sharp in G major, B flat in
+  F major), else as a natural (E up in G major is F natural), else with a sharp
+  going up and a flat going down; whole octaves keep the spelling. As in
+  MuseScore, the notes tied to it move with it, so the tie stays.
+- `pitchForStep(document, position, step, { above? })` is the pitch A–G enter:
+  the letter in the octave nearest the note before (within a fourth; the
+  clef's middle line before the first note), or the nearest above a pitch
+  (Shift+A–G, adding to a chord), altered as the key signature and the
+  accidentals earlier in the measure have it. `pitchAbove(document, note,
+  interval)` is Alt+1–9: the interval above on the same scale.
+- `addChordNote(document, note, pitch)` adds a note after the chord's last,
+  with its length, tuplet and stem (`duplicate_pitch` for a pitch already
+  there, `not_a_note` on a rest or a grace note).
+  `removeChordNote(document, note)` removes one of a chord's notes
+  (`not_a_chord` for a note alone); when it is the first, the next note takes
+  its place, its lyrics and its notations other than ties.
+- `toRest(document, note)` is Delete: a note alone becomes a rest of its length
+  (its pitch, accidental, stem, notehead, beams and lyrics go, everything else
+  stays); a note of a chord is removed from it.
+
+### Ties
+
+- Ties are written twice, `<tie type>` after the `<duration>` and
+  `<notations><tied type>` (made when missing, removed when left empty), a
+  stop before a start, across barlines too: as MuseScore writes them, so
+  untying and tying again gives MuseScore's own file back.
+- `toggleTie(document, note)` (T on a selected note) ties a note to the next
+  chord's note of the same pitch (`no_tie_partner` when there is none) or
+  unties it; returns the note it is tied to, or null.
+- `addTiedNote(document, note, length?)` (T in note input) adds after a note's
+  chord a chord of the same pitches tied to it, of its length unless another
+  is given, overwriting what follows as `writeNote` does.
+
+### Accidentals, beams and stems
+
+- `updateAccidentals(document, measure)`: an `<accidental>` on every note
+  whose alteration differs from what the key signature and the earlier notes
+  of its step and octave in the measure give it (a natural to cancel), none on
+  a note continuing a tie; a tie from the measure before does not count for
+  the later notes, so they show theirs. Accidentals no longer needed are
+  removed unless marked as a courtesy (`cautionary`, `editorial`,
+  `parentheses`, `bracket`) and still right; one already right is left as
+  written; microtones keep theirs.
+- `rebeam(document, measure)`: `<beam number="1">` (and 2, 3… for 16ths,
+  32nds) `begin`, `continue`, `end`, `forward hook`, `backward hook`, grouped
+  as MuseScore 4 groups them by default: in 4/4, 2/2, 3/2 and 4/2 eighths by
+  half bar, 16ths by quarter; in 2/4 and 3/4 eighths by bar (the six eighths of
+  3/4 in one group), 16ths by quarter; in 3/8, 6/8, 9/8 and 12/8 by dotted
+  quarter; 32nds and shorter by eighth; other signatures by beat (a dotted one
+  in compound time). Rests and notes of a quarter or longer break beams; a
+  lone eighth is not beamed. Beams go on a chord's first note (and on its
+  others where the file already writes them). Measures with tuplets are left
+  as they are; grace notes keep their own beams. Only beams that differ are
+  rewritten.
+- Stems: a note's `<stem>` (only where one is written `up` or `down`) is set as
+  a reader would by default when its pitch or its group changes: up below the
+  middle line of the clef in force, down from it; a chord and a beamed group
+  by the note farthest from the middle line (down when as far above as
+  below). Notes without a `<stem>` are left for the reader; `none` and
+  `double` stay.
+
+### Key and time
+
+- `setKey(document, measure, fifths)` (−7 to 7) writes the `<key>` in the
+  `<attributes>` the measure starts with, made after its `<print>` and left
+  barline when missing; a key that would repeat the one in force is removed
+  instead (with `<attributes>` left empty). Pitches stay as they are: the
+  accidentals are written again up to the next key change. A non-traditional
+  key becomes a traditional one.
+- `setTime(document, measure, beats, beatType)` writes the `<time>` the same
+  way (a repeat of the one in force removed; `symbol="common"` or `cut`
+  dropped when it no longer fits; composite signatures replaced) and
+  **re-bars** the music up to the next time change: the measures are read as
+  one stream, each note goes into the new bar it starts in, split and tied
+  across the new barlines, and the last bar is filled with rests; a measure
+  rest is kept only where its bar stays a bar. Chord symbols, directions and
+  lyrics keep their times; a left barline stays at the bar it starts, a right
+  one (a final barline, a repeat) at the bar it ends, a `<print>` at the start
+  of its bar. The old measure elements are kept in order (their attributes,
+  `width` included, as written), new ones added after them or the extra ones
+  removed. A pickup (`implicit="yes"`) at the measure keeps its length and the
+  bars after it are re-barred. Returns the measures now in the new time.
+- Measure numbers are renumbered when the count changes **only** if they are
+  plain consecutive integers from there to the end (else `measure_numbers`).
+  `cannot_rebar` says why the music cannot be re-barred without the user:
+  `pickup` (an incomplete measure inside), `key` (a key change that would fall
+  inside a new bar), `barline` (a repeat, ending or other barline that would)
+  or `divisions` (the divisions change inside).
+
+### Not done here
+
+Tuplets; inserting notes (shifting the rest of the bar rather than
+overwriting); several voices or staves; beaming grace notes; MuseScore's other
+rest groupings (its full rhythmic split, beyond the beat rule above). Layout
+hints from the program that wrote the file (`default-x`, `default-y`, measure
+`width`) are left as they were.
