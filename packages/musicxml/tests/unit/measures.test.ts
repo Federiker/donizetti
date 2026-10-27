@@ -285,3 +285,114 @@ describe("removeMeasures", () => {
     expect(refusal(document, () => removeMeasures(document, -1, 1))).toBe("not_in_score");
   });
 });
+
+describe("lettered measure numbers", () => {
+  /** A score as `score` writes it, its measures numbered so. */
+  function numbered(numbers: string[], ...contents: string[]): string {
+    let index = 0;
+    return score(...contents).replace(/<measure number="\d+">/g, () => `<measure number="${numbers[index++]}">`);
+  }
+  const number = (measure: Element) => measure.getAttribute("number");
+
+  it("letters the measures put first in page order", () => {
+    const document = readScore(numbered(["0", "2"], OPENING + note("C"), note("D")));
+    const [first] = insertMeasures(document, 0, 1);
+    expect(scoreText(document)).toBe(numbered(["0a", "0", "2"], OPENING + rest(4), note("C"), note("D")));
+    // Before 0a: the new one is 0a, the old 0a 0b.
+    const [second] = insertMeasures(document, 0, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["0a", "0b", "0", "2"], OPENING + rest(4), rest(4), note("C"), note("D")),
+    );
+    expect([second, first].map((measure) => number(measure!))).toEqual(["0a", "0b"]);
+    const [third] = insertMeasures(document, 1, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["0a", "0b", "0c", "0", "2"], OPENING + rest(4), rest(4), rest(4), note("C"), note("D")),
+    );
+    expect([second, third, first].map((measure) => number(measure!))).toEqual(["0a", "0b", "0c"]);
+  });
+
+  it("letters measures put in a run in page order, the measures after them moving on", () => {
+    const document = readScore(numbered(["12", "14"], OPENING + note("C"), note("D")));
+    const [a, b] = insertMeasures(document, 1, 2);
+    const [before] = insertMeasures(document, 1, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["12", "12a", "12b", "12c", "14"], OPENING + note("C"), rest(4), rest(4), rest(4), note("D")),
+    );
+    expect([before, a, b].map((measure) => number(measure!))).toEqual(["12a", "12b", "12c"]);
+    const [between] = insertMeasures(document, 2, 1);
+    expect([before, between, a, b].map((measure) => number(measure!))).toEqual(["12a", "12b", "12c", "12d"]);
+    expect(scoreText(document)).toBe(
+      numbered(
+        ["12", "12a", "12b", "12c", "12d", "14"],
+        OPENING + note("C"),
+        rest(4),
+        rest(4),
+        rest(4),
+        rest(4),
+        note("D"),
+      ),
+    );
+  });
+
+  it("keeps the letters when measures are removed, and renumbers only where the order needs it", () => {
+    // The file's 12a after 12 cannot be told from Donizetti's: it is lettered as Donizetti's are.
+    const contents = [OPENING + note("C"), note("D"), note("E"), note("F"), note("G")];
+    const document = readScore(numbered(["12", "12a", "12b", "12c", "13"], ...contents));
+    removeMeasures(document, 1, 1);
+    const later = contents.slice(2);
+    expect(scoreText(document)).toBe(numbered(["12", "12b", "12c", "13"], contents[0]!, ...later));
+    // After 12 comes 12a; 12b and 12c already follow it.
+    insertMeasures(document, 1, 1);
+    expect(scoreText(document)).toBe(numbered(["12", "12a", "12b", "12c", "13"], contents[0]!, rest(4), ...later));
+    // Between 12b and 12c: the new one is 12c, the old 12c 12d.
+    insertMeasures(document, 3, 1);
+    expect(scoreText(document)).toBe(
+      numbered(
+        ["12", "12a", "12b", "12c", "12d", "13"],
+        contents[0]!,
+        rest(4),
+        note("E"),
+        rest(4),
+        note("F"),
+        note("G"),
+      ),
+    );
+  });
+
+  it("never renumbers the file's lettered numbers that follow another number", () => {
+    const document = readScore(numbered(["11", "12a", "13"], OPENING + note("C"), note("D"), note("E")));
+    insertMeasures(document, 1, 1);
+    insertMeasures(document, 3, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["11", "11a", "12a", "12b", "13"], OPENING + note("C"), rest(4), note("D"), rest(4), note("E")),
+    );
+    // 12b may be the file's too: it keeps its number, and the one before it takes the next letter free.
+    insertMeasures(document, 3, 1);
+    expect(scoreText(document)).toBe(
+      numbered(
+        ["11", "11a", "12a", "12c", "12b", "13"],
+        OPENING + note("C"),
+        rest(4),
+        note("D"),
+        rest(4),
+        rest(4),
+        note("E"),
+      ),
+    );
+  });
+
+  it("puts in order only a run that gains a measure, skipping the numbers other measures have", () => {
+    const contents = [OPENING + note("C"), note("D"), note("E"), note("F"), note("G")];
+    const document = readScore(numbered(["0b", "0a", "5", "5b", "5a"], ...contents));
+    insertMeasures(document, 0, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["0a", "0b", "0c", "5", "5b", "5a"], OPENING + rest(4), note("C"), ...contents.slice(1)),
+    );
+    // 1b after 2 is the file's: the old 1a moves on to 1c.
+    const taken = readScore(numbered(["1", "1a", "2", "1b"], OPENING + note("C"), note("D"), note("E"), note("F")));
+    insertMeasures(taken, 1, 1);
+    expect(scoreText(taken)).toBe(
+      numbered(["1", "1a", "1c", "2", "1b"], OPENING + note("C"), rest(4), note("D"), note("E"), note("F")),
+    );
+  });
+});

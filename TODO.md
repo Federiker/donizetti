@@ -66,8 +66,9 @@ The first round (owner decisions, 27 October 2026; see
 - [ ] Small things the first editing round left:
   - [x] A multi-page SVG export in the desktop app writes `name-2.svg` and on
     beside the chosen file without asking whether to replace them.
-  - [ ] Measures inserted before the first among irregular numbers are 0a,
-    then 0b before 0a (0a is taken): decide the order.
+  - [ ] Measures added after a file's own lettered number (12a after 11) are
+    12b, 12c… in the order added, not page order, as they cannot be told
+    from the file's: decide whether they may be renumbered.
   - [x] The lyric field opens a little under the lyric line; place it on the
     verse's own line.
   - [x] `@donizetti/react`'s "plays, pauses and stops" test failed once

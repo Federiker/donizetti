@@ -214,6 +214,18 @@ of these back, its own exports included, as plain staff text, not as jumps.
   new measure takes the number of the one before it with a letter, never
   refused: 12a and 12b after 12, 12c after 12b, the next letter free when one
   is taken (a to z, then aa, bb…); measures put first are 0a, 0b….
+  The letters follow page order (owner decision, 27 October 2026): the
+  measures after a number without a letter (12, or the start of the part as
+  0) numbered with it and a letter (12a, 12b; 0a, 0b) are Donizetti's, and
+  when such a run gains measures each takes the next letter after the one
+  before it, unless it already has a later one. A new measure before 12a is
+  12a and the old 12a 12b; in 12, 12a, 12c a new one after 12a is 12b and
+  12c stays. Any other number is the file's and is never changed: a 12a
+  after 11 keeps its number, and the new measures after it are 12b, 12c… in
+  the order they are added, since they cannot be told from the file's. A
+  file's own 12a right after 12 cannot be told from Donizetti's and is
+  lettered as they are. Removing measures renumbers none: the letters left
+  keep their gaps (12, 12b, 12c), still in page order.
 
 ## Editing: notes and rhythm
 
