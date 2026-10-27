@@ -68,15 +68,71 @@ Owner decisions, 27 October 2026, for the first round (slices in the
     bytes (or a function that loads them); nothing large is bundled. The Tauri
     plugin downloads MuseScore General (MIT, 38 MB as SF3, checksum
     verified), as jerome does; the web demo loads it from a URL.
-11. **Distribution: by path or git now, npm and crates.io later.** The
-    packages export their TypeScript sources (`"exports": "./src/index.ts"`),
-    as jerome's own packages do, so a Vite and TypeScript app uses them
-    without a build step. Bun cannot install one folder of a git monorepo, so
-    jerome depends on the npm packages by path (`link:` or `file:` to a
-    checkout) and on the crates by git (`tauri-plugin-donizetti = { git =
-    "https://github.com/Federiker/donizetti" }`, pinned to a commit) or by
-    path. Builds to `dist/` with declarations come with publishing. The
-    repository is meant for `github.com/Federiker/donizetti`.
+11. **Distribution: tarballs on GitHub releases, the plugin by git**
+    (owner decisions, 27 October 2026, replacing "by path or git now, npm
+    and crates.io later"; no npm registry and no crates.io).
+    `@donizetti/musicxml`, `@donizetti/playback`, `@donizetti/react` and
+    `@donizetti/tauri` keep their names and are released as tarballs
+    attached to the GitHub release of the tag `v<version>` of
+    `github.com/Federiker/donizetti`, named as `npm pack` names them
+    (`donizetti-react-0.1.0.tgz`). A host installs them by URL:
+    `bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizetti-react-0.1.0.tgz`.
+    In the workspace the packages export their TypeScript sources, so the
+    demo app and the tests need no build step; the tarballs hold **built
+    files**: each package's `dist/index.js` (Vite's library mode, ES
+    modules, every dependency left external) with tsc's declarations of
+    `src` (each package's `tsconfig.build.json`), and for the editor one
+    `dist/style.css` with its imports inlined (`@donizetti/react/style.css`).
+    Their manifests are made in `tmp/release/<package>/`, never in the
+    tracked `package.json` files: the catalog's ranges resolved, a sibling
+    as its tarball's URL on the same release, React and React DOM as peers,
+    no devDependencies; each tarball holds `dist`, the package's README and
+    the licence. SpessaSynth's AudioWorklet processor stays a `?url` import
+    of `spessasynth_lib` in the built `@donizetti/playback`, for the host's
+    Vite to serve (see [Playback](features/playback.md#the-processor-url):
+    a Vite build needs nothing, Vite's dev server needs
+    `optimizeDeps.exclude: ["@donizetti/playback"]`, other bundlers pass
+    `processorUrl`). `tauri-plugin-donizetti` is not published: a Cargo host
+    takes it by git at the release's tag,
+    `tauri-plugin-donizetti = { git = "https://github.com/Federiker/donizetti", tag = "v0.1.0" }`,
+    and Cargo takes the crates it uses (`donizetti_soundfonts`,
+    `donizetti_pdf`) by their paths in the same checkout. One version for
+    all, the root `Cargo.toml`'s `[workspace.package]` version (0.1.0
+    first).
+
+    `scripts/release.ts` makes the release. `mise run release:dry` runs the
+    type-check, the tests and Clippy, builds and packs the packages,
+    installs the four tarballs together in a throwaway consumer (the
+    siblings' URLs overridden by the local tarballs; imported with Node,
+    type-checked with `nodenext`, and a small Vite app built on them and
+    served by Vite's dev server, each giving the processor's address) and
+    lists what releasing would do: the tag's checks, the calls to GitHub
+    and the release's notes.
+
+    To release, `mise run tag` (`scripts/tag.ts`) asks at each step, Enter
+    taking the default. On `main`, with nothing uncommitted or untracked and
+    nothing on origin's main this one lacks, it asks the new version (the
+    next patch; the current one when it was never tagged, as for 0.1.0;
+    `x.y.z` or a pre-release such as `0.2.0-alpha.1`, after the current one,
+    its tag not taken here or on origin), writes it to the root
+    `Cargo.toml` and `Cargo.lock` (only the workspace's own crates' lines),
+    commits those two files alone (`[release] Donizetti <version>`, the
+    hooks run, no trailer: the owner's commit), makes the annotated tag
+    `v<version>`, shows what goes to origin and asks before
+    `git push --atomic origin main v<version>`, then asks before running the
+    release. Ctrl+C or the end of the input at a question changes nothing
+    before the commit; after it, the script says what it has done and the
+    commands that undo it here (`git tag -d`, `git reset --hard HEAD~1`),
+    printed, never run. `mise run release` releases a pushed tag: it stops
+    unless `v<version>` is at HEAD here and on origin with HEAD on origin's
+    main, runs the checks and the build, creates the release when there is
+    none (its notes from `scripts/release/notes.ts`) and uploads each
+    tarball, skipping one already there, so a release that stopped half way
+    is run again as it is. The token (`GITHUB_TOKEN`, fine-grained,
+    Contents: read and write) is in the gitignored `.env`
+    ([.env.example](../.env.example)) and goes only in the requests to
+    GitHub's API. jerome may install the released tarballs instead of
+    depending on a checkout by path.
 12. **Tooling, as in jerome:** mise pins the tools (`mise.toml`), Bun runs
     the packages, Biome formats and lints, Vitest and Playwright test,
     lefthook runs the hooks (Biome and rustfmt before a commit, the

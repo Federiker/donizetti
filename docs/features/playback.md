@@ -112,11 +112,15 @@ own.
 SpessaSynth's AudioWorklet processor
 (`spessasynth_lib/dist/spessasynth_processor.min.js`, 0.6 MB) must be served
 as a file. By default the engine imports its address with Vite's `?url`
-suffix, through a dynamic import, as jerome does; the packages are used from
-their sources (decision 11), so the host's Vite does the work:
+suffix, through a dynamic import, as jerome does. The released
+`@donizetti/playback` (decision 11) keeps that import as it is, an import of
+`spessasynth_lib` (a dependency of its own), so the host's Vite does the
+work, from the sources in the workspace or from the tarball:
 
 - **Vite builds** emit the processor as an asset, loaded only on first play
-  (checked with a Vite 7 app outside the repository, in Chromium).
+  (checked with a Vite 7 app outside the repository, in Chromium; for the
+  tarballs, `mise run release:dry` builds a Vite app on them and finds the
+  processor among its assets).
 - **Vite's dev server** serves it from `node_modules`, but only from inside
   `server.fs.allow`. A host whose workspace contains Donizetti needs nothing;
   a host that links a Donizetti checkout from elsewhere (jerome by `link:` or
@@ -124,6 +128,13 @@ their sources (decision 11), so the host's Vite does the work:
   `server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), "../donizetti"] } }`.
   Otherwise Vite serves the processor itself in place of its address and the
   engine fails with an error that says so.
+- **Vite's dev server with the tarballs** pre-bundles dependencies with
+  esbuild, which cannot read the `?url` import, so the dev server fails
+  before the page loads. The host leaves the package out of pre-bundling,
+  `optimizeDeps: { exclude: ["@donizetti/playback"] }`; Vite then serves it
+  as built and gives the processor's address (`mise run release:dry` checks
+  this too). `processorUrl` alone does not help here: the import is in the
+  code esbuild reads.
 - **Other bundlers**, or a host that serves the file itself (copied to its
   public folder, for a strict CSP or a CDN), pass `processorUrl`.
 

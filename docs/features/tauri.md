@@ -19,11 +19,17 @@ client [`@donizetti/tauri`](../../packages/tauri/README.md):
 
 ## Registering the plugin
 
-In the app's `Cargo.toml`, by git (pinned to a commit) or by path
-(decision 11):
+In the app's `Cargo.toml`, by git at a release's tag (decision 11); Cargo
+takes `donizetti_soundfonts` and `donizetti_pdf` from the same checkout:
 
 ```toml
-tauri-plugin-donizetti = { git = "https://github.com/Federiker/donizetti", rev = "<commit>" }
+tauri-plugin-donizetti = { git = "https://github.com/Federiker/donizetti", tag = "v0.1.0" }
+```
+
+and its typed client from the same release:
+
+```sh
+bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizetti-tauri-0.1.0.tgz
 ```
 
 then in the app's builder:

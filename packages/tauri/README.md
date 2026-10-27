@@ -3,6 +3,12 @@
 The typed client of [`tauri-plugin-donizetti`](../../crates/tauri-plugin/README.md),
 for a Tauri 2 app that uses `<ScoreEditor>`. It depends only on
 `@tauri-apps/api`; the other Donizetti packages never import Tauri.
+Released as a tarball on each GitHub release, beside the plugin taken by git
+at the same tag:
+
+```sh
+bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizetti-tauri-0.1.0.tgz
+```
 
 - `readScore(path)` → `{ bytes, hash }`; `writeScore({ path, bytes, expectedHash? })`
   → the new hash, refused with `changed_on_disk` when the file changed since

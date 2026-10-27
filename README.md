@@ -43,6 +43,28 @@ like), checked by `mise run audit`; see
 
 ## Use it in an app
 
+The packages are tarballs on each
+[GitHub release](https://github.com/Federiker/donizetti/releases),
+installed by URL; the Tauri plugin is taken by git at the release's tag:
+
+```sh
+# the editor (it brings @donizetti/musicxml and @donizetti/playback with it):
+bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizetti-react-0.1.0.tgz
+# in a Tauri app, with the plugin:
+bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizetti-tauri-0.1.0.tgz
+```
+
+```toml
+# src-tauri/Cargo.toml, in a Tauri app
+tauri-plugin-donizetti = { git = "https://github.com/Federiker/donizetti", tag = "v0.1.0" }
+```
+
+An app that imports `@donizetti/musicxml` or `@donizetti/playback` itself adds
+their tarballs from the same release too. In a Vite app, playback's
+AudioWorklet processor needs one line for the dev server,
+`optimizeDeps: { exclude: ["@donizetti/playback"] }`; other bundlers pass
+`processorUrl` (see [Playback](docs/features/playback.md#the-processor-url)).
+
 ```tsx
 import { ScoreEditor } from "@donizetti/react";
 import "@donizetti/react/style.css";
@@ -99,6 +121,39 @@ subfolders as needed. It is disposable local developer data, not a required
 build input. Do not stage it or depend on another developer having its
 contents; keep durable findings in tracked documentation.
 
+### Releasing
+
+`@donizetti/musicxml`, `@donizetti/playback`, `@donizetti/react` and
+`@donizetti/tauri` are released as tarballs on the GitHub release of the tag
+`v<version>`, built (`dist/index.js`, declarations and, for the editor,
+`style.css`); there is no npm registry. `tauri-plugin-donizetti` is not
+published: hosts take it by git at the tag, with `donizetti_soundfonts` and
+`donizetti_pdf` from the same checkout. Everything takes the version in the
+root `Cargo.toml` (`[workspace.package]`). See
+[decision 11](docs/development.md#decisions).
+
+```sh
+mise run release:dry   # the checks, the tarballs in tmp/release, a consumer of them, the plan and the notes
+mise run tag           # asks the version, commits it, tags v<version>, pushes, then offers to release
+mise run release       # releases the pushed tag: the GitHub release and its tarballs
+```
+
+To release, run `mise run tag` on `main` with everything committed. It asks
+the new version (Enter for the next patch, or the current one when it was
+never tagged), writes it to `Cargo.toml` and `Cargo.lock` and commits those
+alone, tags `v<version>`, asks before
+`git push --atomic origin main v<version>`, then asks before releasing. If
+you stop before pushing, it says how to push later and how to undo it
+here. `mise run release` makes the release of a pushed tag, and is run
+again as it is if it stopped half way: a tarball the release has already is
+skipped. The release's notes are made by
+[scripts/release/notes.ts](scripts/release/notes.ts).
+`mise run release:dry --allow-dirty` dry-runs with uncommitted changes and
+`--skip-checks` without the type-check, the tests and Clippy. Releasing
+needs `GITHUB_TOKEN` in the gitignored `.env` (copy
+[.env.example](.env.example)): a fine-grained token with Contents: read and
+write on the repository.
+
 ### Commands
 
 `mise tasks` lists them all; the main ones:
@@ -108,6 +163,9 @@ contents; keep durable findings in tracked documentation.
 | `mise run dev` | The demo app in the browser (Vite) |
 | `mise run tauri:dev` | The demo app as a native window |
 | `mise run build` | The demo app's production build |
+| `mise run release:dry` | Check, build and verify the release's tarballs; list what releasing does |
+| `mise run tag` | Set the version, commit, tag `v<version>`, push and release, asking at each step |
+| `mise run release` | The GitHub release of the pushed tag `v<version>`, with its tarballs |
 | `mise run test` | The TypeScript tests (Vitest) |
 | `mise run coverage` | The same, failing below 80% |
 | `mise run rust:test` | The Rust tests (nextest when installed) |
@@ -139,6 +197,10 @@ Bun's caches from Microsoft Defender, or working on a Dev Drive, helps further.
 | [crates/soundfonts](crates/soundfonts) | `donizetti_soundfonts` | The soundfont download, checked and installed |
 | [crates/pdf](crates/pdf) | `donizetti_pdf` | SVG pages to PDF |
 | [tests/e2e](tests/e2e) | `@donizetti/e2e` | Playwright tests of the demo app |
+
+Musicxml, playback, react and tauri are released as tarballs on GitHub
+releases, under these names; the plugin is taken by git at a release's tag
+([Releasing](#releasing)). The others stay private.
 
 ## Checks
 

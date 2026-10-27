@@ -61,7 +61,8 @@ setup, [docs/development.md](docs/development.md) for the owner decisions and
 - Prefer native and Bun tooling; do not add Docker or Python to the build,
   the checks or the scripts.
 - The version is set once, in the root `Cargo.toml` (`[workspace.package]`);
-  the packages follow it when they are published.
+  the packages' tarballs take it when they are released (`mise run tag`,
+  decision 11).
 
 ## Assistant conduct
 

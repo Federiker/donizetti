@@ -80,6 +80,17 @@ The first round (owner decisions, 27 October 2026; see
     and started; clicking through it is under **Verification**.
   - [x] Playwright tests.
 - [x] The Claude workflow: the `donizetti-` skills and the implementer agent.
+- [ ] The first release, v0.1.0 (decision 11; see the README's Releasing):
+  - [x] `mise run release:dry`, `mise run tag` and `mise run release`
+    (tarballs on a GitHub release, the plugin by git; `tag` tried against a
+    throwaway clone with a local bare origin).
+  - [ ] `mise run tag`: 0.1.0 (never tagged, so no commit), the tag on
+    HEAD, `main` and `v0.1.0` pushed.
+  - [ ] Its release (or `mise run release`): the GitHub release and its four
+    tarballs.
+  - [ ] A throwaway host installs the tarballs by URL (`bun add`) and the
+    plugin by git at the tag, builds, and plays a score in Vite's dev server
+    and in a build.
 
 ## Verification
 
@@ -111,7 +122,6 @@ The first round (owner decisions, 27 October 2026; see
   [Score editing](docs/research/score-editing.md#typed-notation)).
 - More than one staff (piano, multi-part), then more than one voice.
 - Transposition, parts, page and system layout settings.
-- Publishing to npm and crates.io (decision 11).
 - Replacing jerome's `ScoreView` with `<ScoreEditor>`.
 
 ## Awaiting owner decisions

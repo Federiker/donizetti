@@ -7,6 +7,14 @@ PDF export ([donizetti_pdf](../pdf/README.md)), and the other exports (MIDI,
 SVG) written where the app chose. Its typed client is
 `@donizetti/tauri` (`packages/tauri`).
 
+It is not on crates.io: a host takes it by git at a release's tag, and Cargo
+takes the crates it uses from the same checkout
+([decision 11](../../docs/development.md#decisions)):
+
+```toml
+tauri-plugin-donizetti = { git = "https://github.com/Federiker/donizetti", tag = "v0.1.0" }
+```
+
 ```rust
 tauri::Builder::default()
     .plugin(tauri_plugin_donizetti::init())
