@@ -121,6 +121,7 @@ Bun's caches from Microsoft Defender, or working on a Dev Drive, helps further.
 | [packages/react](packages/react) | `@donizetti/react` | `<ScoreEditor>`: drawing, selection, keyboard entry, toolbar, playback, exports |
 | [packages/tauri](packages/tauri) | `@donizetti/tauri` | The typed client of the Tauri plugin |
 | [packages/app](packages/app) | `@donizetti/app` | The demo app, browser and Tauri |
+| [packages/app/src-tauri](packages/app/src-tauri) | `donizetti_app` | The demo app's Tauri window: the plugins registered, its capability and icons |
 | [packages/tooling](packages/tooling) | `@donizetti/tooling` | Shared TypeScript settings |
 | [crates/tauri-plugin](crates/tauri-plugin) | `tauri-plugin-donizetti` | The Tauri plugin: files, soundfont, PDF |
 | [crates/soundfonts](crates/soundfonts) | `donizetti_soundfonts` | The soundfont download, checked and installed |

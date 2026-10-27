@@ -64,9 +64,15 @@ The first round (owner decisions, 27 October 2026; see
   - [x] `tauri-plugin-donizetti`: scores with the hash guard, the soundfont
     with progress and cancel, PDF export, permissions.
   - [x] `@donizetti/tauri`, its typed client, with `DonizettiPluginError`.
-  - [ ] Registered and used in the demo app.
-- [ ] The demo app: browser and Tauri window, open and save, the soundfont;
-  Playwright tests.
+  - [x] Registered and used in the demo app.
+- [ ] The demo app:
+  - [x] In the browser: open, save and export, the soundfont picked or from
+    `VITE_SOUNDFONT_URL`.
+  - [x] The Tauri window (`packages/app/src-tauri`): open, save with the hash
+    guard and Save As, exports through the plugin (`write_export`, PDF), the
+    soundfont download with progress and Cancel; its logo and icons. Built
+    and started; clicking through it is under **Verification**.
+  - [ ] Playwright tests.
 - [ ] The Claude workflow: the `donizetti-` skills and the implementer agent.
 
 ## Verification
@@ -86,6 +92,12 @@ The first round (owner decisions, 27 October 2026; see
   download with its progress and cancel, and a PDF of real
   OpenSheetMusicDisplay pages (titles, lyrics and chord symbols in the
   system's fonts).
+- [ ] The demo app's window (`mise run tauri:dev`), clicked through: Open,
+  Save, a file changed elsewhere then saved (overwrite: yes and no), Save As
+  of the sample in `.musicxml` and `.mxl`, MIDI, SVG (one and several pages)
+  and PDF exports, **Download the soundfont** with its progress, Cancel and
+  a second try, then Play; the window's icon and title. The page loads under
+  the CSP without errors in the webview's console.
 
 ## Later
 

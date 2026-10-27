@@ -7,19 +7,27 @@
     "dev": "vite --host 127.0.0.1 --port 1430",
     "build": "vite build",
     "typecheck": "tsc --build",
-    "tauri:dev": "tauri dev"
+    "test": "vitest run",
+    "tauri:dev": "tauri dev",
+    "icons": "tauri icon src/assets/logo.svg --output src-tauri/icons"
   },
   "dependencies": {
     "@donizetti/react": "workspace:*",
+    "@donizetti/tauri": "workspace:*",
+    "@tauri-apps/api": "catalog:",
+    "@tauri-apps/plugin-dialog": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
     "@donizetti/tooling": "workspace:*",
+    "@tauri-apps/cli": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "happy-dom": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,0 +1,20 @@
+[package]
+name = "donizetti_app"
+description = "Donizetti's demo app as a Tauri window: scores opened, played, edited and saved on disk"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-plugin-donizetti.workspace = true
+
+[lints]
+workspace = true

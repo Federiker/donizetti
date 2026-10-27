@@ -1,12 +1,20 @@
 import { type ExportedScore, type SavedScore, ScoreEditor } from "@donizetti/react";
+import { isTauri } from "@tauri-apps/api/core";
 import { useCallback, useMemo, useState } from "react";
 
 import { browserHost, pickSoundfont, soundfontFromUrl } from "./host/browser";
-import type { Host, OpenScore } from "./host/host";
+import { Cancelled, type Host, type OpenScore } from "./host/host";
+import { messageOf } from "./host/messages";
+import { tauriHost } from "./host/tauri";
+import { useSoundfontDownload } from "./host/tauri-soundfont";
 import sample from "./samples/little-tune.musicxml?raw";
+import { SoundfontOffer } from "./SoundfontOffer";
 import { appStrings as text } from "./strings";
 
 const SAMPLE: OpenScore = { name: "little-tune.musicxml", bytes: new TextEncoder().encode(sample) };
+
+/** In the Tauri window (decision 14) the app works on files on disk; anywhere else, in the browser. */
+const desktop = isTauri();
 
 /** The demo app: a score opened, played, edited and saved with `<ScoreEditor>`. */
 export function App() {
@@ -16,7 +24,10 @@ export function App() {
   const [picked, setPicked] = useState<Uint8Array | null>(null);
   const fromUrl = useMemo(soundfontFromUrl, []);
   const soundfont = useMemo(() => (picked ? async () => picked : fromUrl), [picked, fromUrl]);
-  const host: Host = useMemo(() => browserHost(soundfont), [soundfont]);
+  const soundfontFailed = useCallback((error: unknown) => setMessage(messageOf(error, text.soundfontFailed)), []);
+  const download = useSoundfontDownload(desktop, soundfontFailed);
+  const installed = download.status?.installed != null;
+  const host: Host = useMemo(() => (desktop ? tauriHost(installed) : browserHost(soundfont)), [installed, soundfont]);
 
   const open = useCallback(async () => {
     try {
@@ -26,20 +37,36 @@ export function App() {
         setDirty(false);
         setMessage(null);
       }
-    } catch {
-      setMessage(text.openFailed);
+    } catch (error) {
+      setMessage(messageOf(error, text.openFailed));
     }
   }, [host]);
 
   const save = useCallback(
     async (file: SavedScore) => {
-      setScore(await host.save(score, file));
-      setMessage(text.saved);
+      try {
+        setScore(await host.save(score, file));
+        setMessage(text.saved);
+      } catch (error) {
+        setMessage(error instanceof Cancelled ? text.notSaved : messageOf(error, text.saveFailed));
+        // The editor keeps the score as unsaved.
+        throw error;
+      }
     },
     [host, score],
   );
 
-  const exportScore = useCallback((exported: ExportedScore) => host.export(score, exported), [host, score]);
+  const exportScore = useCallback(
+    async (exported: ExportedScore) => {
+      try {
+        await host.export(score, exported);
+        if (host.kind === "tauri") setMessage(text.exported);
+      } catch (error) {
+        if (!(error instanceof Cancelled)) setMessage(messageOf(error, text.exportFailed));
+      }
+    },
+    [host, score],
+  );
 
   return (
     <main className="app">
@@ -56,6 +83,7 @@ export function App() {
             {picked ? text.soundfontReady : text.soundfont}
           </button>
         )}
+        {host.kind === "tauri" && <SoundfontOffer download={download} />}
         <span className="app-file">
           {score.name}
           {dirty && (

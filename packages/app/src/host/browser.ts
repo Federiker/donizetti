@@ -1,6 +1,7 @@
 import type { ExportedScore, SavedScore } from "@donizetti/react";
 
 import type { Host, OpenScore } from "./host";
+import { stem } from "./names";
 
 /** Lets the user pick a file; resolves with null when they cancel. */
 function pickFile(accept: string): Promise<File | null> {
@@ -22,9 +23,6 @@ function download(content: BlobPart, name: string, type: string) {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
-
-/** A file name without its score extension. */
-export const stem = (name: string) => name.replace(/\.(musicxml|xml|mxl)$/i, "");
 
 /**
  * The browser: scores are picked and downloaded; the soundfont comes from `VITE_SOUNDFONT_URL` (see the

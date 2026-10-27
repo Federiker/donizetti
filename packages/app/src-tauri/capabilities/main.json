@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "The demo app's window: Tauri's defaults, the open, save and question dialogue boxes, and Donizetti's plugin (scores, the soundfont, exports).",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:default", "donizetti:default"]
+}

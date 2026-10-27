@@ -30,6 +30,12 @@ body {
   font-size: 1.25rem;
 }
 
+.app-soundfont {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .app-file {
   margin-inline-start: auto;
   font-weight: 600;

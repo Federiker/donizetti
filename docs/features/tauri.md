@@ -184,3 +184,48 @@ something of the wrong shape; `command`, `detail`) and `unknown` (the call
 failed in a way that is not the plugin's, such as a command the capability
 does not allow; `detail` is Tauri's text). An answer of the wrong shape is
 an error, never a substitute value.
+
+## The demo app
+
+The demo app ([packages/app](../../packages/app/README.md), decision 14) is
+also a Tauri window, `mise run tauri:dev`, and shows the whole integration.
+Its native side, `packages/app/src-tauri` (the crate `donizetti_app`), only
+registers the plugins:
+
+```rust
+tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_donizetti::init())
+```
+
+with `core:default`, `dialog:default` and `donizetti:default` in its one
+capability. Its content security policy allows what OpenSheetMusicDisplay
+and SpessaSynth need (inline styles, `blob:` and `data:` images, the
+AudioWorklet's script from the app itself, `blob:` workers and media) and
+Tauri's IPC (`ipc:`, `http://ipc.localhost`), nothing from elsewhere.
+
+`App.tsx` uses the Tauri host (`src/host/tauri.ts`) when `isTauri()` says it
+runs in the window, and the browser host otherwise. The Tauri host:
+
+- **Open** asks with Tauri's dialog for a `.musicxml`, `.xml` or `.mxl` file
+  and reads it with `readScore`, keeping its path and hash.
+- **Save** writes the file back with `writeScore` and the hash it was read
+  with. If another program changed the file since (`changed_on_disk`), it
+  asks whether to overwrite it; only on yes does it write again, without the
+  hash. A score that has no file yet (the sample) goes to **Save As**: a save
+  dialog offering the format the score was read in (decision 18), then
+  `writeScore` without a hash, since the dialog has asked before replacing a
+  file. Each save keeps the new hash for the next.
+- **Export** asks where with a save dialog, starting beside the score: MIDI
+  and SVG are written with `writeExport` (a score of several pages as
+  `name-1.svg`, `name-2.svg`… beside the chosen name), PDF with `exportPdf`.
+- **The soundfont**: at the start the app asks `soundfontStatus()`; while
+  the soundfont is not installed, its header offers **Download the soundfont
+  (38 MB)**, then shows the download's progress with **Cancel** (an
+  `AbortController` passed to `installSoundfont`). Once it is installed, the
+  editor's `soundfont` is `readSoundfont`.
+
+Failures are shown in the header from their codes (`src/host/messages.ts`,
+with the app's text in `src/strings.ts`), never from `detail`. A dialog
+closed without a choice writes nothing; for Save, the editor then keeps the
+score as unsaved.

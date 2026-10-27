@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
   "crates/*",
+  "packages/app/src-tauri",
 ]
 
 [workspace.package]
@@ -27,8 +28,13 @@ sha2 = "0.10.9"
 # drift apart). Its default features: text, and images and filters, which it would otherwise skip.
 svg2pdf = "0.13"
 tauri = { version = "2", features = [] }
+# The demo app's build script: its context, capabilities and Windows resources.
+tauri-build = { version = "2", features = [] }
 # The plugin's build script: its permissions from the command list (with the "build" feature).
 tauri-plugin = "2"
+# The demo app's open, save and question dialogs (MIT OR Apache-2.0).
+tauri-plugin-dialog = "2"
+tauri-plugin-donizetti = { path = "crates/tauri-plugin" }
 # Atomic writes (a temporary file beside the target, then renamed over it) and the tests' folders.
 tempfile = "3.23.0"
 tokio = { version = "1", features = ["rt", "time", "macros"] }
