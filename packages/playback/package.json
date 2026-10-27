@@ -1,0 +1,24 @@
+{
+  "name": "@donizetti/playback",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "opensheetmusicdisplay": "catalog:",
+    "spessasynth_lib": "catalog:"
+  },
+  "devDependencies": {
+    "@donizetti/tooling": "workspace:*",
+    "@types/node": "catalog:",
+    "happy-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

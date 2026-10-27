@@ -42,8 +42,10 @@ The first round (owner decisions, 27 October 2026; see
   - [ ] Lyrics (syllabic, extend, verses), chord symbols (`<harmony>`).
   - [ ] Key, time, tempo, repeat and ending barlines, measures added and
     removed.
-- [ ] Playback (`@donizetti/playback`): jerome's score timing and MIDI file,
-  the SpessaSynth player with the soundfont from the host, MIDI export.
+- [x] Playback (`@donizetti/playback`): jerome's score timing and MIDI file,
+  the SpessaSynth player with the soundfont from the host, MIDI export
+  ([Playback](docs/features/playback.md)). Sound itself is checked in the
+  native window under **Verification**.
 - [ ] The viewer (`@donizetti/react`): drawing, Play/Pause/Stop and the
   cursor, a click to move the music there, the read-only notice, strings and
   theming (light, dark, forced colours).
@@ -69,6 +71,10 @@ The first round (owner decisions, 27 October 2026; see
   `.mxl`) opened, played, edited and saved, then read back by MuseScore.
 - [ ] Sound in the native window on Windows, macOS and Linux (CSP,
   AudioWorklet).
+- [ ] An exported MIDI file read back by MuseScore with its tempo, bars and
+  instruments. (The engine's tests fake SpessaSynth; with MuseScore General
+  in headless Chromium, a Vite 7 build played a score, moved within it,
+  paused it and sounded a preview, and Vite's dev server loaded the worklet.)
 
 ## Later
 

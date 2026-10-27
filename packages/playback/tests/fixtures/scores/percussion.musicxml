@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <part-list>
+    <score-part id="P1">
+      <part-name>Drums</part-name>
+      <score-instrument id="P1-I36"><instrument-name>Bass Drum 1</instrument-name></score-instrument>
+      <score-instrument id="P1-I39"><instrument-name>Acoustic Snare</instrument-name></score-instrument>
+      <score-instrument id="P1-I57"><instrument-name>Cowbell</instrument-name></score-instrument>
+      <midi-instrument id="P1-I36"><midi-channel>10</midi-channel><midi-unpitched>37</midi-unpitched><volume>80</volume></midi-instrument>
+      <midi-instrument id="P1-I39"><midi-channel>10</midi-channel><midi-unpitched>39</midi-unpitched><volume>80</volume></midi-instrument>
+      <midi-instrument id="P1-I57"><midi-channel>10</midi-channel><volume>80</volume></midi-instrument>
+    </score-part>
+    <score-part id="P2">
+      <part-name>Flute</part-name>
+      <score-instrument id="P2-I1"><instrument-name>Flute</instrument-name></score-instrument>
+      <midi-instrument id="P2-I1"><midi-channel>2</midi-channel><midi-program>74</midi-program><volume>80</volume></midi-instrument>
+    </score-part>
+    <score-part id="P3">
+      <part-name>Tambourine</part-name>
+      <score-instrument id="P3-I1"><instrument-name>Tambourine</instrument-name></score-instrument>
+    </score-part>
+  </part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes><divisions>1</divisions><time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>percussion</sign></clef></attributes>
+      <direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>60</per-minute></metronome></direction-type><sound tempo="60"/></direction>
+      <note><unpitched><display-step>F</display-step><display-octave>4</display-octave></unpitched><duration>1</duration><instrument id="P1-I36"/><voice>1</voice><type>quarter</type></note>
+      <note><unpitched><display-step>C</display-step><display-octave>5</display-octave></unpitched><duration>1</duration><instrument id="P1-I39"/><voice>1</voice><type>quarter</type></note>
+      <note><unpitched><display-step>E</display-step><display-octave>5</display-octave></unpitched><duration>1</duration><instrument id="P1-I57"/><voice>1</voice><type>quarter</type></note>
+      <note><unpitched><display-step>C</display-step><display-octave>5</display-octave></unpitched><duration>1</duration><instrument id="P1-I39"/><voice>1</voice><type>quarter</type></note>
+    </measure>
+  </part>
+  <part id="P2">
+    <measure number="1">
+      <attributes><divisions>1</divisions><key><fifths>0</fifths></key><time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>
+      <note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>whole</type></note>
+    </measure>
+  </part>
+  <part id="P3">
+    <measure number="1">
+      <attributes><divisions>1</divisions><time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>percussion</sign></clef><staff-details><staff-lines>1</staff-lines></staff-details></attributes>
+      <note><unpitched><display-step>E</display-step><display-octave>4</display-octave></unpitched><duration>2</duration><voice>1</voice><type>half</type></note>
+      <note><unpitched><display-step>E</display-step><display-octave>4</display-octave></unpitched><duration>2</duration><voice>1</voice><type>half</type></note>
+    </measure>
+  </part>
+</score-partwise>
