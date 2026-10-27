@@ -42,6 +42,7 @@ impl Builder {
                 commands::read_soundfont,
                 commands::remove_soundfont,
                 commands::export_pdf,
+                commands::write_export,
             ])
             .setup(move |app, _api| {
                 let folder = match self.soundfont_dir {

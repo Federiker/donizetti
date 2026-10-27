@@ -4,8 +4,8 @@ use tauri::{http::HeaderMap, ipc::InvokeBody};
 
 use crate::error::Error;
 
-/// The header that carries the score's path in `write_score`, percent-encoded as UTF-8
-/// (`encodeURIComponent`), since a header holds only ASCII.
+/// The header that carries the file's path in `write_score` and `write_export`, percent-encoded as
+/// UTF-8 (`encodeURIComponent`), since a header holds only ASCII.
 pub(crate) const PATH_HEADER: &str = "donizetti-path";
 /// The header that carries the hash a save quotes, when it quotes one.
 pub(crate) const EXPECTED_HASH_HEADER: &str = "donizetti-expected-hash";
@@ -19,6 +19,13 @@ pub(crate) struct ScoreWrite {
     pub expected_hash: Option<String>,
 }
 
+/// A `write_export` request: as a `write_score` request, without a hash.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct ExportWrite {
+    pub path: PathBuf,
+    pub bytes: Vec<u8>,
+}
+
 fn header<'a>(headers: &'a HeaderMap, name: &str) -> Result<Option<&'a str>, Error> {
     headers
         .get(name)
@@ -30,26 +37,44 @@ fn header<'a>(headers: &'a HeaderMap, name: &str) -> Result<Option<&'a str>, Err
         .transpose()
 }
 
-/// Reads a `write_score` request. The body is raw bytes from the custom protocol, or a JSON array of
-/// bytes where Tauri falls back to `postMessage` (Android, or a webview that blocks the protocol).
-pub(crate) fn score_write(body: &InvokeBody, headers: &HeaderMap) -> Result<ScoreWrite, Error> {
+/// The path in the path header, decoded.
+fn path_header(headers: &HeaderMap) -> Result<PathBuf, Error> {
     let path = header(headers, PATH_HEADER)?
         .ok_or_else(|| Error::invalid_request(format!("the {PATH_HEADER} header is missing")))?;
     let path = PathBuf::from(percent_decode(path)?);
     if path.as_os_str().is_empty() {
         return Err(Error::invalid_request("the path is empty"));
     }
-    let expected_hash = header(headers, EXPECTED_HASH_HEADER)?.map(str::to_owned);
-    let bytes = match body {
-        InvokeBody::Raw(bytes) => bytes.clone(),
+    Ok(path)
+}
+
+/// The body's bytes: raw from the custom protocol, or a JSON array of bytes where Tauri falls back to
+/// `postMessage` (Android, or a webview that blocks the protocol).
+fn body_bytes(body: &InvokeBody) -> Result<Vec<u8>, Error> {
+    match body {
+        InvokeBody::Raw(bytes) => Ok(bytes.clone()),
         InvokeBody::Json(value) => serde_json::from_value(value.clone())
-            .map_err(|error| Error::invalid_request(format!("the body is not the file's bytes: {error}")))?,
-    };
+            .map_err(|error| Error::invalid_request(format!("the body is not the file's bytes: {error}"))),
+    }
+}
+
+/// Reads a `write_score` request.
+pub(crate) fn score_write(body: &InvokeBody, headers: &HeaderMap) -> Result<ScoreWrite, Error> {
+    let path = path_header(headers)?;
+    let expected_hash = header(headers, EXPECTED_HASH_HEADER)?.map(str::to_owned);
+    let bytes = body_bytes(body)?;
     Ok(ScoreWrite {
         path,
         bytes,
         expected_hash,
     })
+}
+
+/// Reads a `write_export` request.
+pub(crate) fn export_write(body: &InvokeBody, headers: &HeaderMap) -> Result<ExportWrite, Error> {
+    let path = path_header(headers)?;
+    let bytes = body_bytes(body)?;
+    Ok(ExportWrite { path, bytes })
 }
 
 fn hex_digit(digit: u8) -> Option<u8> {

@@ -14,3 +14,13 @@ pub fn export_pdf(pages: &[String], path: &Path) -> Result<(), Error> {
     let pdf = svg_pages_to_pdf(pages)?;
     write_atomically(path, &pdf, || Ok(()))
 }
+
+/// Writes an export the app made itself (a MIDI file, an SVG page) to `path`, replacing the file in one
+/// rename as a score is. Unlike [`crate::write_score`] there is no hash guard: an export is made again
+/// from the score, and the app's save dialog asks before replacing a file.
+///
+/// # Errors
+/// Returns `WriteFailed`; the file is as it was.
+pub fn write_export(path: &Path, bytes: &[u8]) -> Result<(), Error> {
+    write_atomically(path, bytes, || Ok(()))
+}

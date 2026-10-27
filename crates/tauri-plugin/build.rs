@@ -9,6 +9,7 @@ const COMMANDS: &[&str] = &[
     "read_soundfont",
     "remove_soundfont",
     "export_pdf",
+    "write_export",
 ];
 
 fn main() {

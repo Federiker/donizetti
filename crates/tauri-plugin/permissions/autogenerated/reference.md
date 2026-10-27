@@ -1,7 +1,8 @@
 ## Default Permission
 
 Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the
-soundfont's status, download, reading and removal, and PDF export.
+soundfont's status, download, reading and removal, PDF export, and writing the app's other exports
+(MIDI, SVG).
 
 #### This default permission set includes the following:
 
@@ -13,6 +14,7 @@ soundfont's status, download, reading and removal, and PDF export.
 - `allow-read-soundfont`
 - `allow-remove-soundfont`
 - `allow-export-pdf`
+- `allow-write-export`
 
 ## Permission Table
 
@@ -201,6 +203,32 @@ Enables the soundfont_status command without any pre-configured scope.
 <td>
 
 Denies the soundfont_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`donizetti:allow-write-export`
+
+</td>
+<td>
+
+Enables the write_export command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`donizetti:deny-write-export`
+
+</td>
+<td>
+
+Denies the write_export command without any pre-configured scope.
 
 </td>
 </tr>

@@ -11,6 +11,8 @@ for a Tauri 2 app that uses `<ScoreEditor>`. It depends only on
   `readSoundfont()`, `removeSoundfont()`: MuseScore General, downloaded only
   when asked.
 - `exportPdf(pages, path)`: the score's SVG pages as one PDF.
+- `writeExport(path, content)`: a MIDI file's bytes or an SVG page's text
+  written to `path`, with no hash guard (ask before replacing a file).
 
 A failure is always a `DonizettiPluginError` with the plugin's `code` and
 `params` (`pluginErrorCodes` lists them), `invalid_response` for an answer of

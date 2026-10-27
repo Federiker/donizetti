@@ -1,7 +1,7 @@
 use std::fs;
 
 use super::{PAGE, names};
-use crate::{Error, export_pdf, files::write_atomically, hash, read_score, write_score};
+use crate::{Error, export_pdf, files::write_atomically, hash, read_score, write_export, write_score};
 
 const EMPTY_HASH: &str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
@@ -133,4 +133,20 @@ fn the_pages_are_exported_as_a_pdf() {
     let none = folder.path().join("none.pdf");
     assert_eq!(export_pdf(&[], &none).unwrap_err().code(), "pdf_no_pages");
     assert!(!none.exists());
+}
+
+#[test]
+fn an_export_is_written_whatever_is_there() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("song.mid");
+    write_export(&path, b"MThd").unwrap();
+    assert_eq!(fs::read(&path).unwrap(), b"MThd");
+    // No hash guard: an export is replaced as it stands.
+    fs::write(&path, b"changed elsewhere").unwrap();
+    write_export(&path, b"MThd again").unwrap();
+    assert_eq!(fs::read(&path).unwrap(), b"MThd again");
+    assert_eq!(names(folder.path()), ["song.mid"]);
+
+    let error = write_export(&folder.path().join("missing/song.mid"), b"MThd").unwrap_err();
+    assert_eq!(error.code(), "write_failed");
 }

@@ -10,7 +10,8 @@ export type PluginCommand =
   | "cancel_soundfont_install"
   | "read_soundfont"
   | "remove_soundfont"
-  | "export_pdf";
+  | "export_pdf"
+  | "write_export";
 
 /** Calls `plugin:donizetti|<command>`; a failure is always a `DonizettiPluginError`. */
 export async function call(command: PluginCommand, args?: InvokeArgs, options?: InvokeOptions): Promise<unknown> {

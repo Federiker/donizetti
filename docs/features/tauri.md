@@ -14,6 +14,8 @@ client [`@donizetti/tauri`](../../packages/tauri/README.md):
   ([donizetti_soundfonts](../../crates/soundfonts/README.md); decision 10).
 - **PDF export**: the score's SVG pages to one PDF
   ([donizetti_pdf](../../crates/pdf/README.md)).
+- **Other exports** (MIDI files, SVG pages) written where the user chose, in
+  one rename, so a host needs no file plugin of its own.
 
 ## Registering the plugin
 
@@ -85,6 +87,7 @@ thread.
 | `read_soundfont` (`readSoundfont()`) | nothing | the soundfont's bytes |
 | `remove_soundfont` (`removeSoundfont()`) | nothing | the new status |
 | `export_pdf` (`exportPdf(pages, path)`) | `pages` (SVG text, one per page), `path` | nothing |
+| `write_export` (`writeExport(path, content)`) | the bytes (or text, sent as UTF-8), the path | nothing |
 
 ### Scores and the hash guard
 
@@ -143,6 +146,14 @@ a page with text on a computer with no fonts at all is refused
 (`pdf_no_fonts`) rather than written without its words. The file is written
 in one rename, as a score is.
 
+### Other exports
+
+`write_export` writes what the app exported itself (the MIDI file
+`<ScoreEditor>` makes, an SVG page) to the path it chose. It travels as
+`write_score` does, the bytes as the raw body and the path in
+`Donizetti-Path`, and is written in one rename, but with no hash: the file
+is replaced whatever is there, so the app asks first (a save dialog does).
+
 ## Errors
 
 Every failure reaches the app as `{ code, params }`, never English text; the
@@ -153,9 +164,9 @@ for the interface. Pages are numbered from 1.
 | Code | When | `params` |
 | --- | --- | --- |
 | `read_failed` | A score could not be read (or checked before a save) | `path`, `detail` |
-| `write_failed` | A score or PDF could not be written; the file is as it was | `path`, `detail` |
+| `write_failed` | A score, PDF or export could not be written; the file is as it was | `path`, `detail` |
 | `changed_on_disk` | The file is not the one the app read; nothing was written | `path`, `expectedHash`, `actualHash` |
-| `invalid_request` | A `write_score` without its path header, or a body that is not bytes | `detail` |
+| `invalid_request` | A `write_score` or `write_export` without its path header, or a body that is not bytes | `detail` |
 | `internal` | The command's thread stopped | `detail` |
 | `soundfont_busy` | Another download is running (install or remove) | none |
 | `soundfont_cancelled` | The download was cancelled | none |

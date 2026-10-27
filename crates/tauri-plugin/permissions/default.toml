@@ -3,7 +3,8 @@
 [default]
 description = """
 Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the
-soundfont's status, download, reading and removal, and PDF export.
+soundfont's status, download, reading and removal, PDF export, and writing the app's other exports
+(MIDI, SVG).
 """
 permissions = [
   "allow-read-score",
@@ -14,4 +15,5 @@ permissions = [
   "allow-read-soundfont",
   "allow-remove-soundfont",
   "allow-export-pdf",
+  "allow-write-export",
 ]

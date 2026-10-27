@@ -379,6 +379,18 @@
           "markdownDescription": "Denies the soundfont_status command without any pre-configured scope."
         },
         {
+          "description": "Enables the write_export command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-write-export",
+          "markdownDescription": "Enables the write_export command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the write_export command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-write-export",
+          "markdownDescription": "Denies the write_export command without any pre-configured scope."
+        },
+        {
           "description": "Enables the write_score command without any pre-configured scope.",
           "type": "string",
           "const": "allow-write-score",
@@ -391,10 +403,10 @@
           "markdownDescription": "Denies the write_score command without any pre-configured scope."
         },
         {
-          "description": "Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the\nsoundfont's status, download, reading and removal, and PDF export.\n\n#### This default permission set includes:\n\n- `allow-read-score`\n- `allow-write-score`\n- `allow-soundfont-status`\n- `allow-install-soundfont`\n- `allow-cancel-soundfont-install`\n- `allow-read-soundfont`\n- `allow-remove-soundfont`\n- `allow-export-pdf`",
+          "description": "Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the\nsoundfont's status, download, reading and removal, PDF export, and writing the app's other exports\n(MIDI, SVG).\n\n#### This default permission set includes:\n\n- `allow-read-score`\n- `allow-write-score`\n- `allow-soundfont-status`\n- `allow-install-soundfont`\n- `allow-cancel-soundfont-install`\n- `allow-read-soundfont`\n- `allow-remove-soundfont`\n- `allow-export-pdf`\n- `allow-write-export`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the\nsoundfont's status, download, reading and removal, and PDF export.\n\n#### This default permission set includes:\n\n- `allow-read-score`\n- `allow-write-score`\n- `allow-soundfont-status`\n- `allow-install-soundfont`\n- `allow-cancel-soundfont-install`\n- `allow-read-soundfont`\n- `allow-remove-soundfont`\n- `allow-export-pdf`"
+          "markdownDescription": "Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the\nsoundfont's status, download, reading and removal, PDF export, and writing the app's other exports\n(MIDI, SVG).\n\n#### This default permission set includes:\n\n- `allow-read-score`\n- `allow-write-score`\n- `allow-soundfont-status`\n- `allow-install-soundfont`\n- `allow-cancel-soundfont-install`\n- `allow-read-soundfont`\n- `allow-remove-soundfont`\n- `allow-export-pdf`\n- `allow-write-export`"
         }
       ]
     }

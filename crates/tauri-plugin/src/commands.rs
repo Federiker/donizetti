@@ -11,7 +11,7 @@ use tauri::{
 use crate::{
     error::Error,
     export, files,
-    request::{score_response, score_write},
+    request::{export_write, score_response, score_write},
     soundfont::{SoundfontProgress, SoundfontStatus, Soundfonts},
 };
 
@@ -84,4 +84,11 @@ pub async fn remove_soundfont<R: Runtime>(app: AppHandle<R>) -> Result<Soundfont
 #[tauri::command]
 pub async fn export_pdf(pages: Vec<String>, path: PathBuf) -> Result<(), Error> {
     blocking(move || export::export_pdf(&pages, &path)).await
+}
+
+/// Writes an export sent as the raw body (the path in a header), with no hash guard.
+#[tauri::command]
+pub async fn write_export(request: Request<'_>) -> Result<(), Error> {
+    let write = export_write(request.body(), request.headers())?;
+    blocking(move || export::write_export(&write.path, &write.bytes)).await
 }

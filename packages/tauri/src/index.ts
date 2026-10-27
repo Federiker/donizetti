@@ -1,4 +1,5 @@
 export { DonizettiPluginError, type PluginErrorCode, pluginErrorCodes } from "./errors";
+export { writeExport } from "./export";
 export { exportPdf } from "./pdf";
 export { readScore, type ScoreFile, type ScoreWrite, writeScore } from "./scores";
 export {

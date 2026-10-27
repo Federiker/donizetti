@@ -9,7 +9,7 @@ mod soundfont;
 pub use donizetti_pdf::PdfError;
 pub use donizetti_soundfonts::{InstalledSoundfont, MUSESCORE_GENERAL, Soundfont, SoundfontError};
 pub use error::Error;
-pub use export::export_pdf;
+pub use export::{export_pdf, write_export};
 pub use files::{hash, read_score, write_score};
 pub use plugin::{Builder, init};
 pub use soundfont::{SoundfontProgress, SoundfontStatus, Soundfonts};
