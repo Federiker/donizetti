@@ -190,6 +190,10 @@
   font-size: 0.875em;
 }
 
+.dz-sheet-frame {
+  position: relative;
+}
+
 .dz-sheet {
   overflow: auto;
   min-height: 120px;
@@ -197,6 +201,134 @@
   background: var(--dz-paper);
   border: 1px solid var(--dz-border);
   border-radius: var(--dz-radius);
+}
+
+/* The score with the palette beside it (decision 17); the palette goes above the score at narrow widths. */
+.dz-workspace {
+  display: flex;
+  gap: var(--dz-gap);
+  align-items: flex-start;
+}
+
+.dz-workspace > .dz-sheet-frame {
+  flex: 1;
+  min-width: 0;
+}
+
+.dz-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 15rem;
+  padding: var(--dz-gap);
+  background: var(--dz-surface);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+}
+
+.dz-palette-closed {
+  width: auto;
+}
+
+.dz-palette-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dz-palette-heading {
+  padding: 6px 4px;
+  color: var(--dz-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--dz-border);
+  cursor: pointer;
+}
+
+.dz-palette-heading::before {
+  display: inline-block;
+  width: 1em;
+  content: "▸";
+}
+
+.dz-palette-heading[aria-expanded="true"]::before {
+  content: "▾";
+}
+
+.dz-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 2px;
+}
+
+.dz-palette-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: end;
+}
+
+.dz-palette-row label {
+  display: flex;
+  flex-direction: column;
+}
+
+.dz-palette-row input {
+  width: 5em;
+  font: inherit;
+}
+
+.dz-palette-item {
+  min-height: 30px;
+  padding: 2px 6px;
+  color: var(--dz-text);
+  font: inherit;
+  background: var(--dz-paper);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+  cursor: pointer;
+}
+
+.dz-palette-item:disabled {
+  color: var(--dz-muted);
+  cursor: default;
+}
+
+.dz-palette-item:focus-visible,
+.dz-palette-heading:focus-visible {
+  outline: 2px solid var(--dz-accent);
+}
+
+@media (max-width: 720px) {
+  .dz-workspace {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .dz-palette {
+    width: auto;
+  }
+}
+
+/* The field for lyrics (under the note) and chord symbols (above it), placed over the drawn score. */
+.dz-text-entry {
+  position: absolute;
+  z-index: 1;
+  width: 7em;
+  padding: 2px 4px;
+  color: var(--dz-ink);
+  font: inherit;
+  background: var(--dz-paper);
+  border: 1px solid var(--dz-accent);
+  border-radius: 3px;
+  transform: translateX(-25%);
+}
+
+.dz-text-entry-chord {
+  transform: translate(-25%, -100%);
 }
 
 .dz-note-input .dz-sheet {
