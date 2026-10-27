@@ -35,3 +35,4 @@ packages/*/coverage/
 # Claude Code agents' worktrees (each a full checkout)
 /.claude/worktrees/
 /packages/app/.env.local
+.env
