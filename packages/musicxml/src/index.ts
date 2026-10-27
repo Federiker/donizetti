@@ -103,3 +103,5 @@ export {
 } from "./edit/lengths";
 export { setLength, writeNote, type NoteEdit, type WrittenNote } from "./edit/overwrite";
 export { rebeam, updateAccidentals } from "./edit/notation";
+export { pitchAbove, pitchForStep, setPitch, transpose } from "./edit/pitch";
+export { addChordNote, removeChordNote, toRest } from "./edit/chords";
