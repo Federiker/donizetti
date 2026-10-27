@@ -1,0 +1,17 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = """
+Everything Donizetti's plugin does: reading and writing scores at the paths the app passes, the
+soundfont's status, download, reading and removal, and PDF export.
+"""
+permissions = [
+  "allow-read-score",
+  "allow-write-score",
+  "allow-soundfont-status",
+  "allow-install-soundfont",
+  "allow-cancel-soundfont-install",
+  "allow-read-soundfont",
+  "allow-remove-soundfont",
+  "allow-export-pdf",
+]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-install-soundfont"
+description = "Enables the install_soundfont command without any pre-configured scope."
+commands.allow = ["install_soundfont"]
+
+[[permission]]
+identifier = "deny-install-soundfont"
+description = "Denies the install_soundfont command without any pre-configured scope."
+commands.deny = ["install_soundfont"]

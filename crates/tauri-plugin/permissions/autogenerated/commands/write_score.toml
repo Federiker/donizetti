@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-write-score"
+description = "Enables the write_score command without any pre-configured scope."
+commands.allow = ["write_score"]
+
+[[permission]]
+identifier = "deny-write-score"
+description = "Denies the write_score command without any pre-configured scope."
+commands.deny = ["write_score"]

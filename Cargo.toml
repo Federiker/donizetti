@@ -26,7 +26,10 @@ sha2 = "0.10.9"
 # SVG pages to PDF (MIT OR Apache-2.0), read by usvg 0.45 (re-exported by svg2pdf, so the two never
 # drift apart). Its default features: text, and images and filters, which it would otherwise skip.
 svg2pdf = "0.13"
-# Temporary folders in the tests.
+tauri = { version = "2", features = [] }
+# The plugin's build script: its permissions from the command list (with the "build" feature).
+tauri-plugin = "2"
+# Atomic writes (a temporary file beside the target, then renamed over it) and the tests' folders.
 tempfile = "3.23.0"
 tokio = { version = "1", features = ["rt", "time", "macros"] }
 

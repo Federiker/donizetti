@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-soundfont-status"
+description = "Enables the soundfont_status command without any pre-configured scope."
+commands.allow = ["soundfont_status"]
+
+[[permission]]
+identifier = "deny-soundfont-status"
+description = "Denies the soundfont_status command without any pre-configured scope."
+commands.deny = ["soundfont_status"]
