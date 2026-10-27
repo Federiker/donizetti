@@ -123,6 +123,15 @@ describe("removeMeasures", () => {
     expect(scoreText(document)).toBe(expected);
   });
 
+  it("leaves the file as it was after measures inserted are removed, ties across them kept", () => {
+    const text = fixtureText("musescore/lead-sheet.musicxml");
+    const document = readScore(text);
+    insertMeasures(document, 2, 2);
+    expect(mapScore(document.root)!.measures.map((measure) => measure.number)).toEqual(["1", "2", "3", "4", "5", "6"]);
+    removeMeasures(document, 2, 2);
+    expect(scoreText(document)).toBe(text);
+  });
+
   it("moves the opening key, time, clef, divisions and tempo on to the measure after", () => {
     const document = readScore(fixtureText("musescore/lead-sheet.musicxml"));
     removeMeasures(document, 0, 1);

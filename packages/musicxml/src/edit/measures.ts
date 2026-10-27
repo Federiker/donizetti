@@ -1,4 +1,4 @@
-import { EPSILON, type MappedMeasure, type ScoreMap } from "../score-map";
+import { EPSILON, type MappedMeasure, type MappedNote, type ScoreMap } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { childElement, childElements, childNumber, childText } from "../xml";
 import { addToBarline, barlineAt } from "./barlines";
@@ -158,6 +158,28 @@ function lastTempo(measures: MappedMeasure[]): Element | null {
 const tempoValue = (direction: Element | null) =>
   direction ? (childElement(direction, "sound")?.getAttribute("tempo") ?? null) : null;
 
+/** Whether a note has a tie of this type: `<tie>` or `<notations><tied>`. */
+function hasTie(note: Element, type: "start" | "stop"): boolean {
+  return (
+    childElements(note, "tie").some((tie) => tie.getAttribute("type") === type) ||
+    childElements(note, "notations").some((notations) =>
+      childElements(notations, "tied").some((tied) => tied.getAttribute("type") === type),
+    )
+  );
+}
+
+/** The first and the last notes (a chord's every note) sounding of these, grace notes aside. */
+function firstTimed(notes: MappedNote[]): MappedNote[] {
+  const timed = notes.filter((note) => !note.grace);
+  return timed.filter((note) => note.measure === timed[0]?.measure && note.onset === timed[0]?.onset);
+}
+
+function lastTimed(notes: MappedNote[]): MappedNote[] {
+  const timed = notes.filter((note) => !note.grace);
+  const last = timed.at(-1);
+  return timed.filter((note) => note.measure === last?.measure && note.onset === last?.onset);
+}
+
 /** Takes the ties from a note's start or end: `<tie>` and `<notations><tied>` of that type. */
 function untie(note: Element, type: "start" | "stop") {
   for (const tie of childElements(note, "tie")) if (tie.getAttribute("type") === type) removeElement(tie);
@@ -189,6 +211,9 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
   const next = map.measures[end] ?? null;
   const first = consecutiveFrom(map.measures);
   const endings = endingsOf(map);
+  const removedNotes = removed.flatMap((measure) => measure.notes);
+  const firstNotes = firstTimed(removedNotes);
+  const lastNotes = lastTimed(removedNotes);
   edit(document, (xml) => {
     if (next) {
       const firstNote = next.notes[0]?.element ?? null;
@@ -234,7 +259,9 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
         }
       }
       // Ties out of them.
-      for (const note of next.notes.filter((candidate) => candidate.onset < EPSILON)) untie(note.element, "stop");
+      if (lastNotes.some((note) => hasTie(note.element, "start"))) {
+        for (const note of next.notes.filter((candidate) => candidate.onset < EPSILON)) untie(note.element, "stop");
+      }
     }
     if (previous) {
       for (const ending of endings) {
@@ -242,9 +269,10 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
           addToBarline(previous.element, "right", [cloneUnlaidOut(ending.stop)]);
         }
       }
-      const timed = previous.notes.filter((note) => !note.grace);
-      const lastOnset = timed.at(-1)?.onset;
-      for (const note of timed) if (note.onset === lastOnset) untie(note.element, "start");
+      // Ties into them.
+      if (firstNotes.some((note) => hasTie(note.element, "stop"))) {
+        for (const note of lastTimed(previous.notes)) untie(note.element, "start");
+      }
     }
     rejoinLyrics(map, new Set(removed.flatMap((measure) => measure.notes.map((note) => note.element))));
     for (const measure of removed) removeElement(measure.element);

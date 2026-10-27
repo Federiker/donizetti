@@ -164,6 +164,28 @@ describe("repeats", () => {
 });
 
 describe("setBarStyle", () => {
+  it("writes a double barline at the end of a measure, laid out as the file is", () => {
+    const text = fixtureText("musescore/lead-sheet.musicxml");
+    const document = readScore(text);
+    setBarStyle(document, 2, "double");
+    expect(scoreText(document)).toBe(
+      replaceOnce(
+        text,
+        `          </lyric>
+        </note>
+      </measure>
+    <measure number="4"`,
+        `          </lyric>
+        </note>
+      <barline location="right">
+        <bar-style>light-light</bar-style>
+      </barline>
+      </measure>
+    <measure number="4"`,
+      ),
+    );
+  });
+
   it("writes double and final barlines as MuseScore does, and regular ones as none", () => {
     const fixture = readScore(fixtureText("musescore/repeats-and-endings.musicxml"));
     const document = readScore(score(rest, rest));
