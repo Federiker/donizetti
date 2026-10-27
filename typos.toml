@@ -6,7 +6,8 @@ locale = "en-gb"
 
 [default.extend-words]
 # Names other software fixes: serde's Serialize, CSS and the DOM (`color`, `center`, `behavior`), HTML's
-# <dialog>, Bun's `catalog`, OSMD's `Normalize…`, GitHub's upload-artifact action.
+# <dialog>, Bun's `catalog`, OSMD's `Normalize…`, GitHub's upload-artifact action, the sha2 crate's
+# `finalize`.
 serialize = "serialize"
 serializer = "serializer"
 serializes = "serializes"
@@ -19,6 +20,7 @@ behavior = "behavior"
 dialog = "dialog"
 catalog = "catalog"
 artifact = "artifact"
+finalize = "finalize"
 # MusicXML's own element and attribute names (`<harmony>`, `color`, `<syllabic>`…) are spelt as the
 # W3C wrote them.
 syllabic = "syllabic"
