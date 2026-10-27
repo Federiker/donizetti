@@ -107,3 +107,4 @@ export { pitchAbove, pitchForStep, setPitch, transpose } from "./edit/pitch";
 export { addChordNote, removeChordNote, toRest } from "./edit/chords";
 export { addTiedNote, toggleTie } from "./edit/tie-edit";
 export { setKey, setTime } from "./edit/key-time";
+export { newScore, type NewScoreOptions } from "./new-score";

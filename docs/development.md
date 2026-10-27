@@ -109,3 +109,11 @@ Owner decisions, 27 October 2026, on what the editor looks like:
     narrow widths it moves under the toolbar.
 18. **Save writes the format the score was read in**: `.mxl` stays `.mxl`,
     `.musicxml` stays `.musicxml`; a host may offer the other as Save As.
+19. **A new score** (owner decision, 27 October 2026): `newScore(options)` in
+    `@donizetti/musicxml` writes a new lead sheet's MusicXML, which the host
+    hands to `<ScoreEditor>` like any file (the component still manages no
+    files). The demo app's **New…** opens one small dialog: title and
+    composer, key, time, a pickup measure or not, tempo and the number of
+    measures (16 by default). The part is "Melody", treble clef, played with
+    a piano sound (General MIDI program 1); measures are whole-measure rests,
+    the last with a final barline.
