@@ -1,0 +1,252 @@
+/*
+ * The score editor's styles (decision 5): plain CSS, every colour and size a `--dz-*` variable a host may set on
+ * `.dz-editor` or an ancestor. The drawn score stays on its paper in every theme, as printed music is; light,
+ * dark and forced colours change the tools around it.
+ */
+.dz-editor {
+  --dz-font: system-ui, sans-serif;
+  --dz-text: #1d1d1f;
+  --dz-muted: #5b5b66;
+  --dz-surface: #f4f4f6;
+  --dz-border: #c9c9d1;
+  --dz-accent: #2a5bd7;
+  --dz-accent-text: #ffffff;
+  --dz-problem: #b3261e;
+  --dz-paper: #ffffff;
+  --dz-ink: #000000;
+  --dz-selection: #2a5bd7;
+  --dz-cursor: #e07b00;
+  --dz-radius: 6px;
+  --dz-gap: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--dz-gap);
+  min-width: 0;
+  color: var(--dz-text);
+  font-family: var(--dz-font);
+}
+
+@media (prefers-color-scheme: dark) {
+  .dz-editor:not([data-theme="light"]) {
+    --dz-text: #ececf1;
+    --dz-muted: #a7a7b3;
+    --dz-surface: #26262c;
+    --dz-border: #44444d;
+    --dz-accent: #7aa2ff;
+    --dz-accent-text: #0f1424;
+    --dz-problem: #ff8a80;
+  }
+}
+
+.dz-editor[data-theme="dark"] {
+  --dz-text: #ececf1;
+  --dz-muted: #a7a7b3;
+  --dz-surface: #26262c;
+  --dz-border: #44444d;
+  --dz-accent: #7aa2ff;
+  --dz-accent-text: #0f1424;
+  --dz-problem: #ff8a80;
+}
+
+.dz-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dz-gap);
+  align-items: center;
+  padding: var(--dz-gap);
+  background: var(--dz-surface);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+}
+
+.dz-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+  margin: 0;
+  padding: 0 var(--dz-gap) 0 0;
+  border: 0;
+  border-right: 1px solid var(--dz-border);
+}
+
+.dz-group:last-child {
+  border-right: 0;
+}
+
+.dz-button {
+  min-height: 32px;
+  padding: 4px 10px;
+  color: var(--dz-text);
+  font: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--dz-radius);
+  cursor: pointer;
+}
+
+.dz-button:hover:not(:disabled) {
+  border-color: var(--dz-border);
+}
+
+.dz-button:focus-visible,
+.dz-sheet:focus-visible,
+.dz-menu-item:focus-visible {
+  outline: 2px solid var(--dz-accent);
+  outline-offset: 1px;
+}
+
+.dz-button[aria-pressed="true"] {
+  color: var(--dz-accent-text);
+  background: var(--dz-accent);
+}
+
+.dz-button:disabled {
+  color: var(--dz-muted);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.dz-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 6px;
+}
+
+.dz-icon {
+  display: block;
+}
+
+.dz-hint {
+  color: var(--dz-muted);
+  font-size: 0.875em;
+}
+
+.dz-problem {
+  color: var(--dz-problem);
+}
+
+.dz-menu {
+  position: relative;
+}
+
+.dz-menu-items {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 10em;
+  padding: 4px;
+  background: var(--dz-surface);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+}
+
+.dz-menu-item {
+  padding: 6px 10px;
+  color: var(--dz-text);
+  font: inherit;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  border-radius: var(--dz-radius);
+  cursor: pointer;
+}
+
+.dz-menu-item:hover {
+  background: var(--dz-border);
+}
+
+.dz-notice {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--dz-surface);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+}
+
+.dz-notice ul {
+  margin: 4px 0;
+  padding-inline-start: 1.25em;
+}
+
+.dz-notice p {
+  margin: 0;
+}
+
+.dz-status {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--dz-muted);
+  font-size: 0.875em;
+}
+
+.dz-sheet {
+  overflow: auto;
+  min-height: 120px;
+  color: var(--dz-ink);
+  background: var(--dz-paper);
+  border: 1px solid var(--dz-border);
+  border-radius: var(--dz-radius);
+}
+
+.dz-note-input .dz-sheet {
+  border-color: var(--dz-cursor);
+}
+
+/* CSS outranks the drawing's own fill attributes, so the selected notehead takes the selection's colour. */
+.dz-sheet .dz-selected,
+.dz-sheet .dz-selected path {
+  fill: var(--dz-selection);
+}
+
+.dz-sheet .dz-cursor-note,
+.dz-sheet .dz-cursor-note path {
+  fill: var(--dz-cursor);
+}
+
+@media (forced-colors: active) {
+  .dz-sheet {
+    background: Canvas;
+  }
+
+  .dz-sheet svg [fill="#000000"],
+  .dz-sheet svg [fill="#000"] {
+    fill: CanvasText;
+  }
+
+  .dz-sheet svg [stroke="#000000"],
+  .dz-sheet svg [stroke="#000"] {
+    stroke: CanvasText;
+  }
+
+  .dz-sheet .dz-selected,
+  .dz-sheet .dz-selected path,
+  .dz-sheet .dz-cursor-note,
+  .dz-sheet .dz-cursor-note path {
+    fill: Highlight;
+  }
+
+  .dz-button[aria-pressed="true"] {
+    color: HighlightText;
+    background: Highlight;
+  }
+}
+
+@media print {
+  .dz-toolbar,
+  .dz-status,
+  .dz-notice {
+    display: none;
+  }
+
+  .dz-sheet {
+    overflow: visible;
+    border: 0;
+  }
+}

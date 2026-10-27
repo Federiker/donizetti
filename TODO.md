@@ -46,10 +46,10 @@ The first round (owner decisions, 27 October 2026; see
   the SpessaSynth player with the soundfont from the host, MIDI export
   ([Playback](docs/features/playback.md)). Sound itself is checked in the
   native window under **Verification**.
-- [ ] The viewer (`@donizetti/react`): drawing, Play/Pause/Stop and the
+- [x] The viewer (`@donizetti/react`): drawing, Play/Pause/Stop and the
   cursor, a click to move the music there, the read-only notice, strings and
   theming (light, dark, forced colours).
-- [ ] Selection: the note under the pointer found in the XML and drawn
+- [x] Selection: the note under the pointer found in the XML and drawn
   selected, proven on real MuseScore, Sibelius and Finale exports
   (public-domain or invented music only).
 - [ ] Keyboard entry, MuseScore 4's keys, every key in `keyboard/shortcuts.ts`.

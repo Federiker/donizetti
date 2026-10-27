@@ -1,0 +1,12 @@
+{
+  "extends": "@donizetti/tooling/tsconfig/react.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "${configDir}/node_modules/.cache/tsc"
+  },
+  "include": ["src", "tests"],
+  "references": [{ "path": "../musicxml" }, { "path": "../playback" }]
+}
