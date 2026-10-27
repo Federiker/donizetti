@@ -89,3 +89,4 @@ export {
   removeNavigationMark,
   setNavigationMark,
 } from "./edit/jumps";
+export { appendMeasures, insertMeasures, removeMeasures } from "./edit/measures";

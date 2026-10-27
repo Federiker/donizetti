@@ -203,3 +203,48 @@ export function setChildText(parent: Element, name: string, text: string, order:
 export function removeChildren(parent: Element, name: string) {
   for (const child of Array.from(parent.children)) if (child.localName === name) removeElement(child);
 }
+
+/**
+ * Moves an element of the score, children and all, to the parent before `before` (at the end when null): it
+ * leaves with the whitespace that laid it out and takes its new siblings' indentation, its own children kept as
+ * they were laid out (so it suits a parent at the same depth, a measure's child moved to another measure).
+ */
+export function moveElement(element: Element, parent: Element, before: Element | null = null): Element {
+  removeElement(element);
+  const layout = layoutOf(parent);
+  if (!layout) {
+    parent.insertBefore(element, before);
+    return element;
+  }
+  const xml = parent.ownerDocument;
+  if (before) {
+    parent.insertBefore(element, before);
+    parent.insertBefore(xml.createTextNode(layout.indent), before);
+    return element;
+  }
+  const last = parent.lastChild;
+  if (isWhitespace(last)) {
+    parent.insertBefore(xml.createTextNode(layout.indent), last);
+    parent.insertBefore(element, last);
+  } else {
+    parent.appendChild(xml.createTextNode(layout.indent));
+    parent.appendChild(element);
+  }
+  return element;
+}
+
+/**
+ * A copy of an element of the score without the whitespace that laid it out, to be inserted elsewhere and laid
+ * out there as its new siblings are (`insertElement`).
+ */
+export function cloneUnlaidOut(element: Element): Element {
+  const clone = element.cloneNode(true) as Element;
+  const strip = (node: Node) => {
+    for (const child of Array.from(node.childNodes)) {
+      if (isWhitespace(child) && node.childNodes.length > 1) child.remove();
+      else if (child.nodeType === Node.ELEMENT_NODE) strip(child);
+    }
+  };
+  strip(clone);
+  return clone;
+}
