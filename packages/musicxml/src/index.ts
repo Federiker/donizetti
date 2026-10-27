@@ -44,3 +44,20 @@ export {
   setLyric,
   type Syllabic,
 } from "./edit/lyrics";
+export {
+  type ChordDegree,
+  type ChordNote,
+  type ChordSymbol,
+  chordSymbolText,
+  type HarmonyKind,
+  harmonyText,
+  parseChordSymbol,
+  readChordSymbol,
+} from "./edit/chord-symbol-text";
+export {
+  chordSymbolAt,
+  nextChordSymbolPosition,
+  previousChordSymbolPosition,
+  removeChordSymbol,
+  setChordSymbol,
+} from "./edit/chord-symbols";
