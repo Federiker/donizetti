@@ -1,5 +1,12 @@
 {
   "name": "@donizetti/tauri",
+  "description": "The typed client of tauri-plugin-donizetti: scores on disk with a hash guard, the soundfont download and PDF export",
+  "keywords": [
+    "tauri",
+    "tauri-plugin",
+    "musicxml",
+    "soundfont"
+  ],
   "private": true,
   "type": "module",
   "license": "CC0-1.0",

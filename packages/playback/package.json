@@ -1,11 +1,20 @@
 {
   "name": "@donizetti/playback",
+  "description": "A MusicXML score's notes as played, with repeats and jumps unrolled, its MIDI file, and a SpessaSynth player with the host's soundfont",
+  "keywords": [
+    "musicxml",
+    "midi",
+    "playback",
+    "soundfont",
+    "spessasynth"
+  ],
   "private": true,
   "type": "module",
   "license": "CC0-1.0",
   "exports": {
     ".": "./src/index.ts"
   },
+  "sideEffects": false,
   "scripts": {
     "typecheck": "tsc --build",
     "test": "vitest run"

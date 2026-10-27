@@ -1,11 +1,20 @@
 {
   "name": "@donizetti/musicxml",
+  "description": "A MusicXML score as its own document: reading and writing .musicxml and .mxl with everything an edit does not touch kept as written, the score map and the edit operations",
+  "keywords": [
+    "musicxml",
+    "mxl",
+    "music-notation",
+    "score",
+    "editor"
+  ],
   "private": true,
   "type": "module",
   "license": "CC0-1.0",
   "exports": {
     ".": "./src/index.ts"
   },
+  "sideEffects": false,
   "scripts": {
     "typecheck": "tsc --build",
     "test": "vitest run"

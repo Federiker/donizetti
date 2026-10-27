@@ -11,7 +11,8 @@ edition = "2024"
 rust-version = "1.99"
 license = "CC0-1.0"
 repository = "https://github.com/Federiker/donizetti"
-# Not on crates.io yet (owner decision, 27 October 2026; see docs/development.md, decision 11).
+# Not on crates.io: hosts take tauri-plugin-donizetti by git, pinned to a release tag, with the crates it
+# uses from the same checkout (owner decision, 27 October 2026; see docs/development.md, decision 11).
 publish = false
 
 [workspace.dependencies]

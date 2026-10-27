@@ -1,0 +1,15 @@
+{
+  // The released declarations (scripts/release.ts): the sources only, into the folder the script names.
+  "extends": "@donizetti/tooling/tsconfig/react.json",
+  "compilerOptions": {
+    "types": [],
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": null
+  },
+  "include": ["src"],
+  "references": [{ "path": "../musicxml" }, { "path": "../playback" }]
+}

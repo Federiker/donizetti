@@ -36,7 +36,7 @@ allow = [
 confidence-threshold = 0.93
 
 [licenses.private]
-# Donizetti's own crates (`publish = false` until they go to crates.io).
+# Donizetti's own crates (`publish = false`: hosts take the plugin by git, decision 11).
 ignore = true
 
 [bans]

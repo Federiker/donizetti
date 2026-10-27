@@ -35,4 +35,6 @@ packages/*/coverage/
 # Claude Code agents' worktrees (each a full checkout)
 /.claude/worktrees/
 /packages/app/.env.local
+
+# The release's token (`mise run release`; see .env.example): never committed.
 .env

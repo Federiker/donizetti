@@ -45,6 +45,15 @@ run = "bun run --filter @donizetti/app build"
 description = "Remove build outputs"
 run = "bun scripts/clean.ts"
 
+# Release (decision 11): the packages' tarballs on a GitHub release; the plugin is taken by git at its tag.
+[tasks."release:dry"]
+description = "Check, build and verify the release's tarballs and list what releasing does (--allow-dirty, --skip-checks)"
+run = "bun scripts/release.ts"
+
+[tasks.release]
+description = "Release the pushed tag v<version>: the GitHub release and its tarballs (GITHUB_TOKEN in .env)"
+run = "bun scripts/release.ts --release"
+
 # Check.
 [tasks.check]
 description = "Biome (formatting and lint)"

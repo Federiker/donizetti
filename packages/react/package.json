@@ -1,5 +1,13 @@
 {
   "name": "@donizetti/react",
+  "description": "A React component for reading, playing, editing and saving MusicXML scores, with MuseScore's keys",
+  "keywords": [
+    "react",
+    "musicxml",
+    "music-notation",
+    "score-editor",
+    "opensheetmusicdisplay"
+  ],
   "private": true,
   "type": "module",
   "license": "CC0-1.0",
@@ -7,6 +15,9 @@
     ".": "./src/index.ts",
     "./style.css": "./src/style.css"
   },
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "typecheck": "tsc --build",
     "test": "vitest run"
