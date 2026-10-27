@@ -26,3 +26,5 @@ export {
   type ScoreFormat,
 } from "./score-document";
 export type { TextEncoding } from "./text-encoding";
+export { ScoreEditError, type ScoreEditErrorCode } from "./edit/edit-error";
+export { edit } from "./edit/xml-edit";
