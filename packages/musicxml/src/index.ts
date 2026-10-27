@@ -61,3 +61,12 @@ export {
   removeChordSymbol,
   setChordSymbol,
 } from "./edit/chord-symbols";
+export {
+  type BeatUnit,
+  quarterNotesPerMinute,
+  readTempo,
+  removeTempo,
+  setTempo,
+  type Tempo,
+  tempoAt,
+} from "./edit/tempo";
