@@ -80,6 +80,14 @@ describe("setChordSymbol", () => {
     expect(document.revision).toBe(2);
   });
 
+  it("writes the degrees a spelling implies with print-object='no', as MusicXML 4.0 asks", () => {
+    const document = readScore(score(attributes() + note("C", 4)));
+    setChordSymbol(document, nth(document, "note", 0), "C7sus4");
+    expect(scoreText(document)).toContain(
+      `<harmony print-frame="no"><root><root-step>C</root-step></root><kind text="7sus4">suspended-fourth</kind><degree print-object="no"><degree-value>7</degree-value><degree-alter>0</degree-alter><degree-type>add</degree-type></degree></harmony>`,
+    );
+  });
+
   it("keeps a harmony's offset, staff and attributes, and drops the fretboard of the old chord", () => {
     const harmony = `<harmony placement="above" color="#FF0000"><root><root-step>G</root-step></root><kind>major</kind><frame><frame-strings>6</frame-strings><frame-frets>4</frame-frets></frame><staff>1</staff></harmony>`;
     const document = readScore(score(attributes() + harmony + note("C", 4)));

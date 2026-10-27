@@ -112,12 +112,5 @@ The first round (owner decisions, 27 October 2026; see
 
 ## Awaiting owner decisions
 
-- What the lyric, chord-symbol and structure edits write where MuseScore
-  gave no answer (the conservative choice is in place; see
-  [the score document](docs/features/musicxml.md#editing-lyrics-chord-symbols-and-structure)):
-  - [ ] An ending's text when none is given: "1." (MuseScore's palette, as
-    remembered) or the bare number ("1", what its MusicXML import kept).
-  - [ ] Spellings naming kind and degrees together (C7sus4, C6/9, C2): their
-    degrees written with `print-object="no"` beside `text="7sus4"`, as
-    MusicXML 4.0 asks, where MuseScore writes `text="74"` with the degree
-    printed.
+None at present: the editing decisions of 27 October 2026 are recorded in
+[the score document](docs/features/musicxml.md).

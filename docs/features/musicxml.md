@@ -118,8 +118,9 @@ back by MuseScore with its lyrics, chord symbols, tempos, repeats and endings.
   MuseScore keeps it), degrees added, altered or taken away (an addition's
   alteration from a dominant chord, as MusicXML says), parentheses and bass.
   Spellings that name the kind and degrees together (7sus4, 9sus4, 6/9, C2,
-  7alt) write those degrees with `print-object="no"`, as MusicXML asks. Text
-  it does not read is null, never a guess: a small parser of our own, no
+  7alt) write those degrees with `print-object="no"` beside `<kind
+  text="7sus4">`, MusicXML 4.0's way (owner decision, 27 October 2026), where
+  MuseScore writes `text="74"` with the degree printed. Text it does not read is null, never a guess: a small parser of our own, no
   dependency.
 - `readChordSymbol(harmony)`, `chordSymbolText(symbol)` and
   `harmonyText(harmony)` turn any program's `<harmony>` back into text that
@@ -165,7 +166,8 @@ unit, more than two dots or a tempo not above zero.
   number="1" type="start">1.</ending>` in the first measure's left barline,
   `type="stop"` (`discontinue` when open, as a last ending usually is) in the
   last one's right barline, as MuseScore exports them; numbers are written
-  "1, 2", the text is the numbers with a full stop unless given. Endings may
+  "1, 2", the text is the numbers with a full stop unless given ("1.", "1, 2.",
+  as MuseScore's palette writes; owner decision, 27 October 2026). Endings may
   not overlap (`ending_overlaps`); `removeEnding` takes one away,
   `endingsOf(map)` lists them.
 - New barlines go first in the measure (after `<print>`) at the left, last at
@@ -297,12 +299,14 @@ for each tied piece) and `next`, the cursor's position after them.
 - `setPitch(document, note, pitch)` sets `<step>`, `<alter>` (none for a
   natural) and `<octave>`; a rest becomes a note of its length (a measure rest
   needs a length one type can write, else `unsupported_rhythm`). A tie to or
-  from it is undone at both ends when the pitch changes.
+  from it is undone at both ends when the pitch changes: a pitch set by letter
+  breaks the tie (owner decision, 27 October 2026).
 - `transpose(document, note, semitones)` is Up and Down (±1) and Ctrl+Up and
   Down (±12). Spelt as the key signature has it (F sharp in G major, B flat in
   F major), else as a natural (E up in G major is F natural), else with a sharp
   going up and a flat going down; whole octaves keep the spelling. As in
-  MuseScore, the notes tied to it move with it, so the tie stays.
+  MuseScore, the whole tied chain moves together (owner decision, 27 October
+  2026), so the tie stays.
 - `pitchForStep(document, position, step, { above? })` is the pitch A–G enter:
   the letter in the octave nearest the note before (within a fourth; the
   clef's middle line before the first note), or the nearest above a pitch
