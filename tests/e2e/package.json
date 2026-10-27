@@ -4,9 +4,13 @@
   "type": "module",
   "license": "CC0-1.0",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit -p ."
   },
   "devDependencies": {
-    "@playwright/test": "catalog:"
+    "@donizetti/tooling": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }

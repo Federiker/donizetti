@@ -106,7 +106,10 @@
     "tests/e2e": {
       "name": "@donizetti/e2e",
       "devDependencies": {
+        "@donizetti/tooling": "workspace:*",
         "@playwright/test": "catalog:",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
       },
     },
   },
