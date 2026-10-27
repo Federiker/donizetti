@@ -48,8 +48,8 @@ describe("insertMeasures and appendMeasures", () => {
         <rest measure="yes"/>
         <duration>8</duration>
         <voice>1</voice>
-      </note>
-    </measure>
+        </note>
+      </measure>
     </part>`,
       ),
     );
@@ -141,7 +141,7 @@ describe("removeMeasures", () => {
     expect(map.measures[0]!.notes[0]!.length).toBe(0.25);
     const first = scoreText(document).slice(scoreText(document).indexOf(`<measure number="1"`));
     expect(first).toMatch(
-      /^<measure number="1" width="219\.49">\n {6}<attributes>\n {8}<divisions>2<\/divisions>\n {8}<key>\n {10}<fifths>1<\/fifths>\n {8}<\/key>/,
+      /^<measure number="1" width="219\.49">\n {6}<attributes>\n {8}<divisions>2<\/divisions>\n {8}<key>\n {10}<fifths>1<\/fifths>\n {10}<\/key>/,
     );
     expect(first.indexOf("<clef>")).toBeLessThan(first.indexOf("<harmony"));
     expect(first.indexOf(`<sound tempo="96"/>`)).toBeGreaterThan(first.indexOf("</harmony>"));

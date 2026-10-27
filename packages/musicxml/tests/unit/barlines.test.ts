@@ -46,7 +46,7 @@ describe("repeats", () => {
       <barline location="left">
         <bar-style>heavy-light</bar-style>
         <repeat direction="forward"/>
-      </barline>
+        </barline>
       <note`,
       ),
     );
@@ -122,7 +122,7 @@ describe("repeats", () => {
       <barline location="right">
         <bar-style>light-heavy</bar-style>
         <repeat direction="backward"/>
-      </barline>
+        </barline>
       </measure>
     <measure number="3"`,
       ),
@@ -179,7 +179,7 @@ describe("setBarStyle", () => {
         </note>
       <barline location="right">
         <bar-style>light-light</bar-style>
-      </barline>
+        </barline>
       </measure>
     <measure number="4"`,
       ),

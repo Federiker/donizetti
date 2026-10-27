@@ -90,3 +90,16 @@ export {
   setNavigationMark,
 } from "./edit/jumps";
 export { appendMeasures, insertMeasures, removeMeasures } from "./edit/measures";
+// Editing: notes and rhythm.
+export {
+  isNoteLength,
+  MAX_DOTS,
+  NOTE_TYPES,
+  noteLengthOf,
+  splitLength,
+  wholeNotesOf,
+  type NoteLength,
+  type NoteType,
+} from "./edit/lengths";
+export { setLength, writeNote, type NoteEdit, type WrittenNote } from "./edit/overwrite";
+export { rebeam, updateAccidentals } from "./edit/notation";

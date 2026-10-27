@@ -92,9 +92,9 @@ describe("setNavigationMark", () => {
       <direction placement="above">
         <direction-type>
           <segno/>
-        </direction-type>
+          </direction-type>
         <sound segno="segno"/>
-      </direction>
+        </direction>
       <note`,
       ),
     );
@@ -115,9 +115,9 @@ describe("setNavigationMark", () => {
       <direction placement="above">
         <direction-type>
           <words>D.S. al Coda</words>
-        </direction-type>
+          </direction-type>
         <sound dalsegno="segno"/>
-      </direction>
+        </direction>
       <barline location="right">`,
       ),
     );

@@ -6,9 +6,11 @@ import {
   edit,
   insertElement,
   insertInOrder,
+  moveElement,
   removeChildren,
   removeElement,
   setChildText,
+  stripLayout,
 } from "../../src/edit/xml-edit";
 
 const PRETTY = `<score-partwise version="4.0">
@@ -105,5 +107,57 @@ describe("editing the XML", () => {
     const note = document.root.getElementsByTagName("note")[0]!;
     insertInOrder(note, createElement(document.xml, "vendor-thing", undefined, { a: "b" }), "note");
     expect(scoreText(document)).toContain(`<duration>1</duration><vendor-thing a="b"/></note>`);
+  });
+
+  it("hangs new end tags at their children's indentation where the file does, as MuseScore writes them", () => {
+    const hanging = `<score-partwise version="4.0">
+  <part id="P1">
+    <measure number="1">
+      <note>
+        <rest/>
+        </note>
+      </measure>
+    </part>
+  </score-partwise>`;
+    const document = readScore(hanging);
+    const measure = document.root.getElementsByTagName("measure")[0]!;
+    const pitch = createElement(document.xml, "pitch", [createElement(document.xml, "step", "C")]);
+    insertElement(measure, createElement(document.xml, "note", [pitch]));
+    expect(scoreText(document)).toBe(
+      hanging.replace(
+        "        </note>\n",
+        "        </note>\n      <note>\n        <pitch>\n          <step>C</step>\n          </pitch>\n        </note>\n",
+      ),
+    );
+  });
+
+  it("moves an element with its layout, within its parent or into another", () => {
+    const document = readScore(PRETTY.replace('<measure number="1">', '<measure number="1">\n      <print/>'));
+    const [measure] = Array.from(document.root.getElementsByTagName("measure"));
+    const note = measure!.getElementsByTagName("note")[0]!;
+    moveElement(note, measure!, measure!.firstElementChild);
+    expect(scoreText(document)).toContain(`<measure number="1">\n      <note>\n        <pitch>`);
+    expect(scoreText(document)).toContain(`</note>\n      <print/>\n    </measure>`);
+    moveElement(note, measure!);
+    expect(scoreText(document)).toContain(`<print/>\n      <note>`);
+    const other = createElement(document.xml, "measure", [createElement(document.xml, "barline")], { number: "2" });
+    insertElement(measure!.parentElement!, other);
+    moveElement(note, other, other.firstElementChild);
+    expect(scoreText(document)).toContain(`<measure number="2">\n      <note>\n        <pitch>`);
+    const compact = readScore(COMPACT);
+    const inline = compact.root.getElementsByTagName("note")[0]!;
+    moveElement(inline, inline.parentElement!);
+    expect(scoreText(compact)).toBe(COMPACT);
+    const bare = readScore(`<score-partwise><part><measure><note/><note/></measure></part></score-partwise>`);
+    const first = bare.root.getElementsByTagName("note")[0]!;
+    moveElement(first, first.parentElement!);
+    expect(scoreText(bare)).toBe(`<score-partwise><part><measure><note/><note/></measure></part></score-partwise>`);
+  });
+
+  it("strips an element's layout, keeping the spaces inside its text", () => {
+    const document = readScore(`<score-partwise><lyric>\n  <text> </text>\n  <extend/>\n</lyric></score-partwise>`);
+    const lyric = document.root.getElementsByTagName("lyric")[0]!;
+    expect(stripLayout(lyric)).toBe(lyric);
+    expect(new XMLSerializer().serializeToString(lyric)).toBe("<lyric><text> </text><extend/></lyric>");
   });
 });

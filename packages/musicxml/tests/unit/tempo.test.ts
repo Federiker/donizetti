@@ -101,10 +101,10 @@ describe("setTempo", () => {
           <metronome parentheses="no">
             <beat-unit>half</beat-unit>
             <per-minute>60</per-minute>
-          </metronome>
-        </direction-type>
+            </metronome>
+          </direction-type>
         <sound tempo="120"/>
-      </direction>
+        </direction>
       <note default-x="129.75" default-y="-5">`,
       ),
     );

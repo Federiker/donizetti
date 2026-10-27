@@ -38,14 +38,14 @@ describe("setChordSymbol", () => {
         <root>
           <root-step>B</root-step>
           <root-alter>-1</root-alter>
-        </root>
+          </root>
         <kind text="7">dominant</kind>
         <degree>
           <degree-value>9</degree-value>
           <degree-alter>-1</degree-alter>
           <degree-type>add</degree-type>
-        </degree>
-      </harmony>
+          </degree>
+        </harmony>
       <note default-x="71.13" default-y="-35">`,
       ),
     );
@@ -65,11 +65,11 @@ describe("setChordSymbol", () => {
         </harmony>`,
         `<root>
           <root-step>A</root-step>
-        </root>
+          </root>
         <kind text="m7">minor-seventh</kind>
         <bass arrangement="horizontal">
           <bass-step>G</bass-step>
-        </bass>
+          </bass>
         </harmony>`,
       ),
     );
@@ -104,10 +104,10 @@ describe("setChordSymbol", () => {
       <harmony print-frame="no">
         <root>
           <root-step>D</root-step>
-        </root>
+          </root>
         <kind text="7">dominant</kind>
         <offset>4</offset>
-      </harmony>
+        </harmony>
       <note default-x="12.5" default-y="-30">`,
       ),
     );

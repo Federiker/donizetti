@@ -279,3 +279,56 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
     if (first !== null) renumber(map.part, first);
   });
 }
+
+/**
+ * How long a measure is, in whole notes: what its time signature asks for, or what its notes reach when they
+ * reach further; a pickup (`implicit="yes"`) is as long as its notes. Without a time signature, as long as its
+ * notes, or a whole note when it has none.
+ */
+export function capacityOf(measure: MappedMeasure): number {
+  if (measure.implicit) return measure.length;
+  if (measure.expectedLength === null) return measure.length > 0 ? measure.length : 1;
+  return Math.max(measure.expectedLength, measure.length);
+}
+
+/** The `<attributes>` a measure starts with (before its first note), or null. */
+export function attributesAtStart(measure: Element): Element | null {
+  for (const child of Array.from(measure.children)) {
+    if (child.localName === "attributes") return child;
+    if (child.localName === "note" || child.localName === "backup" || child.localName === "forward") break;
+  }
+  return null;
+}
+
+/**
+ * Adds `<attributes>` with these children at a measure's start: after its `<print>` and left barline, before
+ * anything else, where MuseScore writes them.
+ */
+export function addAttributesAtStart(measure: Element, children: Element[]): Element {
+  const before =
+    Array.from(measure.children).find(
+      (child) =>
+        child.localName !== "print" && !(child.localName === "barline" && child.getAttribute("location") === "left"),
+    ) ?? null;
+  return insertElement(measure, createElement(measure.ownerDocument, "attributes", children), before);
+}
+
+/** Whether measure numbers are plain integers counting up by one: the only ones the editor renumbers. */
+export function consecutiveNumbers(numbers: string[]): boolean {
+  return numbers.every(
+    (number, index) => /^\d+$/.test(number) && (index === 0 || Number(number) === Number(numbers[index - 1]) + 1),
+  );
+}
+
+/**
+ * Adds an empty measure at the end of the part, numbered after the last, holding the given content (a measure
+ * rest). Throws `measure_numbers` when the last measure's number is not a plain integer.
+ */
+export function appendMeasure(map: ScoreMap, content: Element[]): Element {
+  const last = map.measures.at(-1);
+  const number = last ? last.number : "0";
+  if (!/^\d+$/.test(number)) throw new ScoreEditError("measure_numbers", { number });
+  const measure = createElement(map.part.ownerDocument, "measure", content, { number: String(Number(number) + 1) });
+  const after = last?.element.nextElementSibling ?? null;
+  return insertElement(map.part, measure, after);
+}

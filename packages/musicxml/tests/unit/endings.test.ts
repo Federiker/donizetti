@@ -40,7 +40,7 @@ describe("setEnding", () => {
           `<measure number="2" width="219.49">
       <barline location="left">
         <ending number="1" type="start">1.</ending>
-      </barline>
+        </barline>
       <harmony`,
         ),
         `<text>the</text>
@@ -52,7 +52,7 @@ describe("setEnding", () => {
         </note>
       <barline location="right">
         <ending number="1" type="stop"/>
-      </barline>
+        </barline>
       </measure>`,
       ),
     );

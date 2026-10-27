@@ -36,7 +36,40 @@ export type ScoreEditErrorCode =
   /** New measures take their length from the time signature, and there is none in force. */
   | "no_time_signature"
   /** A whole-measure rest that the divisions in force cannot write (`params.divisions`, `params.length`). */
-  | "length_not_in_divisions";
+  | "length_not_in_divisions"
+  // Notes and rhythm.
+  /** A note length that is not one of MusicXML's types with up to four dots; `params.length` says what was given. */
+  | "invalid_length"
+  /** A pitch MusicXML and MIDI cannot write (a step other than A to G, an octave outside 0 to 9, a MIDI key outside 0 to 127). */
+  | "invalid_pitch"
+  /**
+   * Music the edit would have to write in tuplets (`<time-modification>`), which notes and rhythm do not edit
+   * yet, or a length no plain note, dotted or tied, can take; `params.measure` is the measure's index.
+   */
+  | "unsupported_rhythm"
+  /** The edit needs a pitched note and was given a rest. */
+  | "not_a_note"
+  /** The edit needs a note of a chord (a note with others sounding with it). */
+  | "not_a_chord"
+  /** The chord already has a note of this pitch. */
+  | "duplicate_pitch"
+  /** No next note of the same pitch to tie to. */
+  | "no_tie_partner"
+  /**
+   * Measures would have to be added or removed, but their numbers are not plain consecutive integers, so how to
+   * number them is for the user to say; `params.number` is the number that stopped it.
+   */
+  | "measure_numbers"
+  /** A key signature other than −7 to 7 fifths. */
+  | "invalid_key"
+  /** A time signature other than a positive whole number of beats over a power of two up to 1024. */
+  | "invalid_time"
+  /**
+   * The music cannot be put into new bars without a decision that is the user's: `params.reason` is `pickup`
+   * (an incomplete measure inside), `key` (a key change that would fall inside a new bar), `barline` (a repeat,
+   * ending or other barline that would) or `divisions` (the divisions change inside); `params.measure` says where.
+   */
+  | "cannot_rebar";
 
 /** An edit the score cannot take: nothing was changed. */
 export class ScoreEditError extends Error {

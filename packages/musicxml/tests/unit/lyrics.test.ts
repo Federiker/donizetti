@@ -116,7 +116,7 @@ describe("setLyric", () => {
         <lyric number="2">
           <syllabic>single</syllabic>
           <text>way</text>
-        </lyric>
+          </lyric>
         </note>
       </measure>
     <measure number="4"`,
