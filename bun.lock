@@ -85,6 +85,18 @@
         "react-dom": "catalog:",
       },
     },
+    "packages/tauri": {
+      "name": "@donizetti/tauri",
+      "dependencies": {
+        "@tauri-apps/api": "catalog:",
+      },
+      "devDependencies": {
+        "@donizetti/tooling": "workspace:*",
+        "happy-dom": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
+      },
+    },
     "packages/tooling": {
       "name": "@donizetti/tooling",
       "devDependencies": {
@@ -211,6 +223,8 @@
     "@donizetti/playback": ["@donizetti/playback@workspace:packages/playback"],
 
     "@donizetti/react": ["@donizetti/react@workspace:packages/react"],
+
+    "@donizetti/tauri": ["@donizetti/tauri@workspace:packages/tauri"],
 
     "@donizetti/tooling": ["@donizetti/tooling@workspace:packages/tooling"],
 
@@ -419,6 +433,8 @@
     "@rollup/rollup-win32-x64-gnu": ["@rollup/rollup-win32-x64-gnu@4.65.1", "", { "os": "win32", "cpu": "x64" }, "sha512-+KN8HIr88vN59JNxlrM2fMimzY43Y0lQB7+0xdVsFbvFCAA74CLKCdfzIHzzvndJryBc94Pm+MvwtukKjaS2ug=="],
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.65.1", "", { "os": "win32", "cpu": "x64" }, "sha512-+Y1Sd49cSDq60UOl8/U2HI0ebUvnSl/hDhMHQn+ouw17yb8fYwMWIazzJ4JFpSkjPE7sj5NTNSX9IoyEqcFfyQ=="],
+
+    "@tauri-apps/api": ["@tauri-apps/api@2.12.4", "", {}, "sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg=="],
 
     "@testing-library/dom": ["@testing-library/dom@10.4.2", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "picocolors": "1.1.1", "pretty-format": "^27.0.2" } }, "sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q=="],
 

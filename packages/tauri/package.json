@@ -1,0 +1,23 @@
+{
+  "name": "@donizetti/tauri",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "typecheck": "tsc --build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "catalog:"
+  },
+  "devDependencies": {
+    "@donizetti/tooling": "workspace:*",
+    "happy-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

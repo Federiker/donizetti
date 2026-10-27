@@ -56,9 +56,14 @@ The first round (owner decisions, 27 October 2026; see
 - [ ] Lyrics entry and chord-symbol entry.
 - [ ] The palette and toolbar: key, time, tempo, repeats, endings.
 - [ ] Undo and redo; Save; exports: MIDI, SVG, PDF.
-- [ ] Rust: `donizetti_soundfonts` (MuseScore General, checked),
-  `donizetti_pdf` (SVG pages to PDF) and `tauri-plugin-donizetti` (files,
-  soundfont, PDF, permissions); `@donizetti/tauri`, its typed client.
+- [ ] Rust and the Tauri client ([the Tauri integration](docs/features/tauri.md)):
+  - [x] `donizetti_soundfonts`: MuseScore General, pinned and checked, installed
+    atomically with its notice in the caller's folder.
+  - [x] `donizetti_pdf`: SVG pages to one PDF, text in the system's fonts.
+  - [x] `tauri-plugin-donizetti`: scores with the hash guard, the soundfont
+    with progress and cancel, PDF export, permissions.
+  - [x] `@donizetti/tauri`, its typed client, with `DonizettiPluginError`.
+  - [ ] Registered and used in the demo app.
 - [ ] The demo app: browser and Tauri window, open and save, the soundfont;
   Playwright tests.
 - [ ] The Claude workflow: the `donizetti-` skills and the implementer agent.
@@ -75,6 +80,11 @@ The first round (owner decisions, 27 October 2026; see
   instruments. (The engine's tests fake SpessaSynth; with MuseScore General
   in headless Chromium, a Vite 7 build played a score, moved within it,
   paused it and sounded a preview, and Vite's dev server loaded the worklet.)
+- [ ] The plugin in the native window on Windows, macOS and Linux: open and
+  save with the hash guard (a file changed by another program), the soundfont
+  download with its progress and cancel, and a PDF of real
+  OpenSheetMusicDisplay pages (titles, lyrics and chord symbols in the
+  system's fonts).
 
 ## Later
 
@@ -87,4 +97,7 @@ The first round (owner decisions, 27 October 2026; see
 
 ## Awaiting owner decisions
 
-None yet.
+- The plugin's score and PDF commands take any path the window passes (the
+  capability is the boundary, as for Tauri's file plugin without a scope).
+  Should they be limited, for example to `.musicxml`, `.xml`, `.mxl` and
+  `.pdf` files, or to paths the user chose in a dialog?

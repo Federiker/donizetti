@@ -1,5 +1,12 @@
 {
   "extends": "@donizetti/tooling/tsconfig/base.json",
   "files": [],
-  "references": [{ "path": "./packages/musicxml" }, { "path": "./packages/playback" }, { "path": "./scripts" }]
+  "references": [
+    { "path": "./packages/musicxml" },
+    { "path": "./packages/playback" },
+    { "path": "./packages/tauri" },
+    { "path": "./packages/react" },
+    { "path": "./packages/app" },
+    { "path": "./scripts" }
+  ]
 }
