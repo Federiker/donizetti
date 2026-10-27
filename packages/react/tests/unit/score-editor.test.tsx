@@ -119,6 +119,42 @@ describe("ScoreEditor", () => {
     expect(onSave.mock.calls[0]![0].bytes).toBe(LEAD_SHEET);
   });
 
+  it("only draws, selects, plays and exports when read-only", async () => {
+    const onSave = vi.fn();
+    render(<ScoreEditor source={LEAD_SHEET} readOnly onSave={onSave} soundfont={async () => new Uint8Array()} />);
+    await drawn();
+    const sheet = screen.getByRole("application");
+    for (const name of ["Note input", "Undo", "Save", "Rest", "Hide the palette"]) {
+      expect(screen.queryByRole("button", { name })).toBeNull();
+    }
+    expect(screen.queryByRole("note")).toBeNull();
+    fireEvent.click(sheet, { clientX: 3, clientY: 0 });
+    expect(screen.getByText("D5, half note, measure 1")).toBeInTheDocument();
+    for (const key of [
+      { key: "n" },
+      { key: "ArrowUp" },
+      { key: "Delete" },
+      { key: "l", ctrlKey: true },
+      { key: "s", ctrlKey: true },
+    ]) {
+      fireEvent.keyDown(sheet, key);
+    }
+    expect(screen.getByText("D5, half note, measure 1")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Play" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Export" })).toBeEnabled();
+  });
+
+  it("says nothing when the host did not save (a dialog cancelled)", async () => {
+    const onChange = vi.fn();
+    render(<ScoreEditor source={LEAD_SHEET} onSave={async () => false} onChange={onChange} />);
+    await drawn();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("says when saving fails", async () => {
     render(<ScoreEditor source={LEAD_SHEET} onSave={() => Promise.reject(new Error("disk full"))} />);
     await drawn();

@@ -28,6 +28,9 @@ import { type DrawnScore, noteElementAt, selectionElementsOf } from "../drawing/
 import { useDrawing } from "../drawing/use-drawing";
 import { type Theme, useInk } from "../drawing/use-ink";
 import { runEdit } from "../editing/commands";
+import { applyPalette } from "../editing/palette-commands";
+import { problemOf } from "../editing/problems";
+import { commitText, entryNote, entryText, type TextEntryState } from "../editing/text-commands";
 import { ScoreHistory } from "../editing/history";
 import {
   type InputLength,
@@ -41,8 +44,10 @@ import {
 import { actionOf, type ShortcutAction } from "../keyboard/shortcuts";
 import { ReadOnlyNotice } from "../notices/ReadOnlyNotice";
 import { useScorePlayer } from "../playback/use-score-player";
-import type { Strings } from "../strings/en-GB";
+import { Palette, type PaletteAction } from "../palette/Palette";
+import type { MessageKey, Strings } from "../strings/en-GB";
 import { createTranslate, type Translate, TranslateProvider } from "../strings/translate";
+import { TextEntry, type TextEntryMove } from "../text-entry/TextEntry";
 import { type ExportKind, Toolbar } from "../toolbar/Toolbar";
 import { describeSelection } from "./describe";
 import { downloadFile, svgPages } from "./exports";
@@ -65,14 +70,21 @@ export type ScoreEditorProps = {
   source: Uint8Array | ArrayBuffer | string;
   /** Its name, for the label and for exported files' names. */
   fileName?: string;
-  /** Only draw and play, never edit, whatever the score. */
+  /**
+   * Only draw, select, play and export, whatever the score: no note input, editing keys, palette, lyrics,
+   * chord symbols, undo or Save, and no notice (the host chose it).
+   */
   readOnly?: boolean;
   /** The soundfont's bytes (SF2 or SF3), loaded on first play (decision 10); without it, the score is not played. */
   soundfont?: () => Promise<ArrayBuffer | Uint8Array>;
   /** Called after each change, undo and redo. */
   onChange?: (change: ScoreChange) => void;
-  /** Called by Save (Ctrl+S) with the file to write; without it, there is no Save. */
-  onSave?: (file: SavedScore) => void | Promise<void>;
+  /**
+   * Called by Save (Ctrl+S) with the file to write; without it, there is no Save. Resolving `false` means it
+   * was not saved but nothing went wrong (the user cancelled a dialog): the score stays unsaved, with no
+   * failure shown. Throwing or rejecting shows that saving failed.
+   */
+  onSave?: (file: SavedScore) => void | boolean | Promise<void | boolean>;
   /**
    * Called by Export with the exported score. Without it, MIDI and SVG are downloaded and PDF printed through
    * the browser; a Tauri host writes them, and makes the PDF, with `@donizetti/tauri`.
@@ -138,7 +150,9 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
   const [selection, setSelection] = useState<Selection>(null);
   const [noteInput, setNoteInput] = useState(false);
   const [length, setLength] = useState<InputLength>(DEFAULT_LENGTH);
-  const [problem, setProblem] = useState<"edit" | "save" | null>(null);
+  const [problem, setProblem] = useState<MessageKey | null>(null);
+  const [textEntry, setTextEntry] = useState<TextEntryState | null>(null);
+  const frame = useRef<HTMLDivElement | null>(null);
   const [savedText, setSavedText] = useState<string | null>(null);
   const container = useRef<HTMLDivElement | null>(null);
   const editor = useRef<HTMLElement | null>(null);
@@ -152,6 +166,7 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     setNoteInput(false);
     setSavedText(null);
     setProblem(null);
+    setTextEntry(null);
   }, [history]);
 
   const document = history?.document ?? null;
@@ -182,17 +197,26 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     }
   }, [history, onChange, savedText]);
 
-  // The selection drawn: its noteheads marked, as the cursor or the selected note.
+  // The selection drawn: its noteheads marked, as the cursor or the selected note (in note input, the note
+  // entered last too).
   useEffect(() => {
     if (!drawn || !map) return undefined;
+    const marked: [Element, string][] = [];
+    const mark = (element: Element | undefined, className: string) => {
+      const shown = element ? drawn.drawnOf.get(element) : undefined;
+      if (!shown) return;
+      for (const head of selectionElementsOf(drawn, shown)) {
+        head.classList.add(className);
+        marked.push([head, className]);
+      }
+    };
     const note = selectedNote(map, selection);
-    const shown = note ? drawn.drawnOf.get(note.element) : undefined;
-    if (!shown) return undefined;
-    const marks = selectionElementsOf(drawn, shown);
-    const className = selection?.kind === "cursor" ? "dz-cursor-note" : "dz-selected";
-    for (const mark of marks) mark.classList.add(className);
+    mark(note?.element, selection?.kind === "cursor" ? "dz-cursor-note" : "dz-selected");
+    if (selection?.kind === "cursor" && selection.last) {
+      mark(map.measures[selection.last.measure]?.notes[selection.last.index]?.element, "dz-selected");
+    }
     return () => {
-      for (const mark of marks) mark.classList.remove(className);
+      for (const [head, className] of marked) head.classList.remove(className);
     };
   }, [drawn, map, selection]);
 
@@ -211,11 +235,12 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     if (!document || !onSave) return;
     const bytes = writeScore(document);
     try {
-      await onSave({ bytes, format: document.format, mediaType: mediaTypeOf(document.format) });
+      const saved = await onSave({ bytes, format: document.format, mediaType: mediaTypeOf(document.format) });
+      if (saved === false) return;
       setSavedText(scoreText(document));
       onChange?.({ document, dirty: false });
     } catch {
-      setProblem("save");
+      setProblem("toolbar.saveFailed");
     }
   }, [document, onSave, onChange]);
 
@@ -252,8 +277,10 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
           void player.toggle();
           return true;
         case "save":
+          // Read-only, nothing can change: there is nothing to save.
+          if (readOnly || !onSave) return false;
           void save();
-          return onSave !== undefined;
+          return true;
         case "undo":
           undo();
           return true;
@@ -286,6 +313,17 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
           break;
       }
       if (!editable) return false;
+      if (action === "lyrics" || action === "chordSymbol") {
+        const note = selectedNote(map, selection);
+        const at = note ? selectionOf(map, note.element) : null;
+        if (!note || at?.kind !== "note") return false;
+        setTextEntry(
+          action === "lyrics"
+            ? { kind: "lyrics", measure: at.measure, index: at.index, verse: 1 }
+            : { kind: "chord", position: { measure: note.measure, onset: note.onset } },
+        );
+        return true;
+      }
       if (action === "noteInput.toggle") {
         if (noteInput) {
           setNoteInput(false);
@@ -324,13 +362,13 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
           changed();
           setSelection(result.selection);
           if (result.sound !== undefined) player.preview(result.sound);
-        } catch {
-          setProblem("edit");
+        } catch (error) {
+          setProblem(problemOf(error));
         }
         return true;
       }
     },
-    [history, map, player, save, onSave, undo, redo, noteInput, selection, select, editable, length, changed],
+    [history, map, player, save, onSave, undo, redo, noteInput, selection, select, editable, length, changed, readOnly],
   );
 
   useImperativeHandle(
@@ -347,6 +385,46 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     }),
     [history, player, undo, redo, save, exportScore],
   );
+
+  function commitEntry(text: string, move: TextEntryMove) {
+    if (!history || !map || !textEntry) return;
+    try {
+      const result = commitText(history, map, textEntry, text, move);
+      if (result.changed) changed();
+      setTextEntry(result.next);
+      if (!result.next) container.current?.focus();
+    } catch (error) {
+      setProblem(problemOf(error));
+    }
+  }
+
+  function applyPaletteAction(action: PaletteAction) {
+    if (!history || !map) return;
+    const note = selectedNote(map, selection);
+    const at = note
+      ? { measure: note.measure, onset: note.onset }
+      : selection
+        ? { measure: selection.measure, onset: 0 }
+        : null;
+    if (!at) return;
+    try {
+      applyPalette(history, map, at, action);
+      changed();
+    } catch (error) {
+      setProblem(problemOf(error));
+    }
+  }
+
+  /** Where the text field goes: by the note's head, under it for lyrics, above the staff for chord symbols. */
+  function anchorOf(entry: TextEntryState) {
+    const element = map ? entryNote(map, entry) : null;
+    const shown = element && drawn ? drawn.drawnOf.get(element) : undefined;
+    const head = shown && drawn ? selectionElementsOf(drawn, shown)[0] : undefined;
+    const box = frame.current?.getBoundingClientRect();
+    if (!head || !box) return { left: 0, top: 0, bottom: 0 };
+    const rect = head.getBoundingClientRect();
+    return { left: rect.left - box.left, top: rect.top - box.top - 36, bottom: rect.bottom - box.top + 36 };
+  }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
@@ -392,7 +470,7 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
           length={length}
           canUndo={history?.canUndo ?? false}
           canRedo={history?.canRedo ?? false}
-          canSave={onSave !== undefined}
+          canSave={onSave !== undefined && !readOnly}
           onAction={act}
           onStop={player.stop}
           onExport={(kind) => void exportScore(kind)}
@@ -410,22 +488,36 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
         )}
         {problem && (
           <p className="dz-notice dz-problem" role="alert">
-            {t(problem === "edit" ? "edit.failed" : "toolbar.saveFailed")}
+            {t(problem)}
           </p>
         )}
         <p className="dz-status" aria-live="polite" data-dirty={dirty ? "yes" : "no"}>
           {describeSelection(t, map, selection)}
         </p>
-        <div
-          className="dz-sheet"
-          ref={container}
-          // biome-ignore lint/a11y/noNoninteractiveTabindex: the score takes the editor's keys, as MuseScore's canvas does.
-          tabIndex={0}
-          role="application"
-          aria-label={t("score.label", { name })}
-          onKeyDown={onKeyDown}
-          onClick={onClick}
-        />
+        <div className="dz-workspace">
+          <div className="dz-sheet-frame" ref={frame}>
+            <div
+              className="dz-sheet"
+              ref={container}
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: the score takes the editor's keys, as MuseScore's canvas does.
+              tabIndex={0}
+              role="application"
+              aria-label={t("score.label", { name })}
+              onKeyDown={onKeyDown}
+              onClick={onClick}
+            />
+            {textEntry && map && (
+              <TextEntry
+                kind={textEntry.kind}
+                anchor={anchorOf(textEntry)}
+                initial={entryText(map, textEntry)}
+                verse={textEntry.kind === "lyrics" ? textEntry.verse : undefined}
+                onCommit={commitEntry}
+              />
+            )}
+          </div>
+          {editable && <Palette enabled={selection !== null} onApply={applyPaletteAction} />}
+        </div>
       </section>
     </TranslateProvider>
   );

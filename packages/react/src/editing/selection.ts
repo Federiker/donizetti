@@ -28,11 +28,17 @@ export function lengthInWholeNotes(length: InputLength): number {
 /**
  * What is selected, kept as places rather than elements so it survives undo and redo (which replace the
  * document): a note (its measure and its index among the measure's notes), or, in note input, the cursor
- * (a measure and whole notes into it), where the next note is written.
+ * (a measure and whole notes into it), where the next note is written, and the note entered last.
  */
 export type Selection =
   | { kind: "note"; measure: number; index: number }
-  | { kind: "cursor"; measure: number; onset: number }
+  | {
+      kind: "cursor";
+      measure: number;
+      onset: number;
+      /** The note entered last, which Up, Down, T, Shift+A–G and Alt+digits change, as in MuseScore. */
+      last?: { measure: number; index: number };
+    }
   | null;
 
 /** The selection of a note element, or null when it is not in the map. */

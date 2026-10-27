@@ -55,11 +55,26 @@ The first round (owner decisions, 27 October 2026; see
 - [x] Selection: the note under the pointer found in the XML and drawn
   selected, proven on real MuseScore, Sibelius and Finale exports
   (public-domain or invented music only).
-- [ ] Keyboard entry, MuseScore 4's keys, every key in `keyboard/shortcuts.ts`.
-- [ ] Lyrics entry and chord-symbol entry.
-- [ ] The palette and toolbar: key, time, tempo, repeats, endings.
-- [ ] Undo and redo; Save; exports: MIDI, SVG, PDF.
-- [ ] Rust and the Tauri client ([the Tauri integration](docs/features/tauri.md)):
+- [x] Keyboard entry, MuseScore 4's keys, every key in `keyboard/shortcuts.ts`.
+- [x] Lyrics entry and chord-symbol entry, typed inline (decision 16).
+- [x] The palette (decision 17): key, time, tempo, barlines and repeats,
+  endings, jumps, measures.
+- [x] Undo and redo; Save (a cancelled save is not a failure); exports: MIDI,
+  SVG, PDF.
+- [x] A new score (decision 19): `newScore` and the demo app's New….
+- [x] Read-only: no Save, and a switch in the demo app.
+- [ ] Small things the first editing round left:
+  - [ ] A multi-page SVG export in the desktop app writes `name-2.svg` and on
+    beside the chosen file without asking whether to replace them.
+  - [ ] Measures inserted before the first among irregular numbers are 0a,
+    then 0b before 0a (0a is taken): decide the order.
+  - [ ] The lyric field opens a little under the lyric line; place it on the
+    verse's own line.
+  - [ ] `@donizetti/react`'s "plays, pauses and stops" test failed once
+    under full-suite load: make it independent of timing.
+  - [ ] knip: `@testing-library/user-event` unused in packages/react, the
+    `tauri` binary in packages/app, the `@tauri-apps/cli` catalog entry.
+- [x] Rust and the Tauri client ([the Tauri integration](docs/features/tauri.md)):
   - [x] `donizetti_soundfonts`: MuseScore General, pinned and checked, installed
     atomically with its notice in the caller's folder.
   - [x] `donizetti_pdf`: SVG pages to one PDF, text in the system's fonts.
@@ -67,15 +82,15 @@ The first round (owner decisions, 27 October 2026; see
     with progress and cancel, PDF export, permissions.
   - [x] `@donizetti/tauri`, its typed client, with `DonizettiPluginError`.
   - [x] Registered and used in the demo app.
-- [ ] The demo app:
+- [x] The demo app:
   - [x] In the browser: open, save and export, the soundfont picked or from
     `VITE_SOUNDFONT_URL`.
   - [x] The Tauri window (`packages/app/src-tauri`): open, save with the hash
     guard and Save As, exports through the plugin (`write_export`, PDF), the
     soundfont download with progress and Cancel; its logo and icons. Built
     and started; clicking through it is under **Verification**.
-  - [ ] Playwright tests.
-- [ ] The Claude workflow: the `donizetti-` skills and the implementer agent.
+  - [x] Playwright tests.
+- [x] The Claude workflow: the `donizetti-` skills and the implementer agent.
 
 ## Verification
 

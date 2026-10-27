@@ -63,6 +63,16 @@ export const enGB = {
   "selection.cursor": "Note input at measure {measure}, beat {beat}",
 
   "edit.failed": "That change cannot be made here.",
+  "edit.not_editable": "This score cannot be edited.",
+  "edit.unsupported_rhythm": "Triplets and other tuplets cannot be edited yet.",
+  "edit.lyric_not_allowed": "A lyric goes on a note, not on a rest, a grace note or a tied note.",
+  "edit.chord_symbol_unreadable": "That chord symbol is not one Donizetti can read.",
+  "edit.cannot_rebar": "The time cannot change here: a pickup, a key change or a repeat is in the way.",
+  "edit.duplicate_pitch": "That note is already in the chord.",
+  "edit.no_tie_partner": "There is no next note of the same pitch to tie to.",
+  "edit.ending_overlaps": "An ending is already there.",
+  "edit.last_measure": "The only measure cannot be removed.",
+  "edit.invalid_tempo": "That tempo cannot be written.",
 
   "textEntry.lyrics": "Lyrics, verse {verse}",
   "textEntry.chord": "Chord symbol",

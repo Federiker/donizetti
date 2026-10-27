@@ -25,6 +25,10 @@ import "@donizetti/react/style.css";
 />;
 ```
 
+- **`readOnly`** draws, selects, plays and exports any score, and nothing
+  more: no note input, editing keys, palette, lyrics, chord symbols, undo or
+  Save, and no notice (the host chose it). The demo app has a **Read-only**
+  switch in its header.
 - **Without `onExport`**, MIDI and SVG are downloaded and PDF is printed by
   the browser; a Tauri host writes them and makes the PDF with
   `@donizetti/tauri`.
@@ -94,5 +98,29 @@ combinations and keys typed in an input method never trigger a shortcut.
 | Ctrl+L | Lyrics on the selected note |
 | Ctrl+K | Chord symbol on the selected note |
 
-Editing keys act once the edit operations are wired in (see the
-[TODO](../../TODO.md)).
+## Editing
+
+Every change goes through the history, so it can be undone, and comes from
+the edit operations of [the score document](musicxml.md); one the score
+cannot take changes nothing and says why (`edit.<code>` messages).
+
+- **Note input** (N): the cursor (orange) stands where the next note goes.
+  A–G write that note at the cursor, in the octave nearest the note before,
+  with the length chosen (1–8, and `.` for a dot), overwriting what was there
+  and moving the cursor on; 0 writes a rest. The note entered last (blue) is
+  what ↑ ↓, Ctrl+↑ ↓, T (a tied note after it), Shift+A–G and Alt+2–9 (chord
+  notes) change. A click moves the cursor; Esc leaves note input with that
+  note selected.
+- **The selected note**, outside note input: A–G set its pitch, ↑ ↓ and
+  Ctrl+↑ ↓ move it (with its tie), 1–8 and `.` change its length, Delete and 0
+  turn it into a rest, T ties it to the next note of the same pitch.
+- **Lyrics** (Ctrl+L) and **chord symbols** (Ctrl+K) are typed in a field by
+  the note (decision 16): Space writes the syllable or symbol and goes to the
+  next note, `-` writes a hyphen after the syllable, `_` an extender, Enter
+  goes to the next verse (in a chord symbol, Enter closes), Backspace in an
+  empty field goes back, Esc closes. An empty field removes what was there.
+- **The palette** (decision 17), beside the score and above it at narrow
+  widths, applies to the selected note's measure: key and time signatures,
+  tempo (at the note), start and end repeats and barlines, endings ("1",
+  "1, 2", "1-3"), segno, coda, To Coda, Fine, D.C., D.S. and their al Fine
+  and al Coda, and measures inserted, added or removed.
