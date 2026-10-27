@@ -22,16 +22,16 @@ The first round (owner decisions, 27 October 2026; see
 
 - [x] Foundation: the workspaces, the tools and hooks, CI, the docs, the
   licence.
-- [ ] Reading and writing (`@donizetti/musicxml`):
-  - [ ] Parse and serialise with the browser's DOM, the text written back
+- [x] Reading and writing (`@donizetti/musicxml`):
+  - [x] Parse and serialise with the browser's DOM, the text written back
     exactly as read when nothing changed (declaration, DOCTYPE, comments,
     vendor elements); `partwise` only, `timewise` refused with a reason.
-  - [ ] `.mxl`: `META-INF/container.xml`, the root file, other files in the
+  - [x] `.mxl`: `META-INF/container.xml`, the root file, other files in the
     archive kept; written back as `.mxl`.
-  - [ ] Errors as codes with parameters, not English text.
-  - [ ] Editability: one part, one staff, one voice (no `backup`/`forward`
+  - [x] Errors as codes with parameters, not English text.
+  - [x] Editability: one part, one staff, one voice (no `backup`/`forward`
     beyond what one voice allows), with the reason when not.
-- [ ] The score map: measures, notes and their onsets in the part; a note
+- [x] The score map: measures, notes and their onsets in the part; a note
   found from a measure and a time in it (the click-to-XML mapping).
 - [ ] The edit operations, each tested on plain XML, with a round trip proving
   the rest of the file is unchanged:

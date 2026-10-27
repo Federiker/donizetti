@@ -1,0 +1,23 @@
+{
+  "name": "@donizetti/musicxml",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fflate": "catalog:"
+  },
+  "devDependencies": {
+    "@donizetti/tooling": "workspace:*",
+    "@types/node": "catalog:",
+    "jsdom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
