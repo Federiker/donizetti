@@ -70,3 +70,22 @@ export {
   type Tempo,
   tempoAt,
 } from "./edit/tempo";
+export {
+  type BarlineLocation,
+  type BarStyle,
+  barlinesOf,
+  type MeasureBarlines,
+  removeRepeatEnd,
+  removeRepeatStart,
+  setBarStyle,
+  setRepeatEnd,
+  setRepeatStart,
+} from "./edit/barlines";
+export { type Ending, type EndingInput, endingsOf, removeEnding, setEnding } from "./edit/endings";
+export {
+  type NavigationMark,
+  navigationMarkOf,
+  navigationMarksOf,
+  removeNavigationMark,
+  setNavigationMark,
+} from "./edit/jumps";

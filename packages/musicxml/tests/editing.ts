@@ -35,6 +35,17 @@ export function nth(document: ScoreDocument, name: string, index: number): Eleme
   return element;
 }
 
+/**
+ * An element's XML without the layout around its children or the positions a program computed for it
+ * (`default-x`, `relative-y`, a measure's `width`…): what it says, to compare with what MuseScore writes.
+ */
+export function meaningOf(element: Element): string {
+  return new XMLSerializer()
+    .serializeToString(element)
+    .replace(/\s(default|relative)-[xy]="[^"]*"/g, "")
+    .replace(/>\s+</g, "><");
+}
+
 /** A score with two parts, which the editor refuses (decision 4). */
 export function twoParts(): ScoreDocument {
   return readScore(
