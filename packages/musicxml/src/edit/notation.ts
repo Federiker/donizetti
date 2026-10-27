@@ -1,14 +1,14 @@
-import { mapScore } from "../score-map";
+import { mapScore, type ScoreMap } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { writeAccidentals } from "./accidentals";
 import { rebeamMeasure } from "./beams";
-import { ScoreEditError } from "./edit-error";
+import { measureOf } from "./edit-context";
 import { operate } from "./operation";
 
-/** Throws `not_in_score` unless the part has a measure at this index. */
-function checkMeasure(root: Element, measure: number) {
+/** The map of a score with a measure at this index (else `not_in_score`). */
+function mapWith(root: Element, measure: number): ScoreMap {
   const map = mapScore(root)!;
-  if (!map.measures[measure]) throw new ScoreEditError("not_in_score", { measure: String(measure) });
+  measureOf(map, measure);
   return map;
 }
 
@@ -18,7 +18,7 @@ function checkMeasure(root: Element, measure: number) {
  * measures it touches.
  */
 export function updateAccidentals(document: ScoreDocument, measure: number) {
-  operate(document, [], (root) => writeAccidentals(checkMeasure(root, measure), measure));
+  operate(document, [], (root) => writeAccidentals(mapWith(root, measure), measure));
 }
 
 /**
@@ -26,5 +26,5 @@ export function updateAccidentals(document: ScoreDocument, measure: number) {
  * edit does this for the measures it touches.
  */
 export function rebeam(document: ScoreDocument, measure: number) {
-  operate(document, [], (root) => rebeamMeasure(checkMeasure(root, measure), measure));
+  operate(document, [], (root) => rebeamMeasure(mapWith(root, measure), measure));
 }

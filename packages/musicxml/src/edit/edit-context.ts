@@ -51,16 +51,6 @@ export function chordHead(map: ScoreMap, note: MappedNote): MappedNote {
   return notes[index]!;
 }
 
-/** Whether a note continues a tie from the note before it (`<tie type="stop">` or `<tied type="stop">`). */
-export function isTiedFrom(note: Element): boolean {
-  if (Array.from(note.children).some((child) => child.localName === "tie" && child.getAttribute("type") === "stop"))
-    return true;
-  const notations = Array.from(note.children).filter((child) => child.localName === "notations");
-  return notations.some((element) =>
-    Array.from(element.children).some((child) => child.localName === "tied" && child.getAttribute("type") === "stop"),
-  );
-}
-
 /**
  * The elements written between a note and the note before it in its measure (harmonies, directions,
  * attributes, a barline…), in order: what MusicXML places at the note's moment.

@@ -1,9 +1,9 @@
-import { editabilityOf } from "../editability";
-import { mapScore, partsOf, type ScoreMap } from "../score-map";
+import { mapScore, partsOf } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { childElements } from "../xml";
 import { writeAccidentals } from "./accidentals";
 import { rebeamMeasure } from "./beams";
+import { editableMap } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
 import { updateStems } from "./stems";
 import { edit } from "./xml-edit";
@@ -19,11 +19,6 @@ export type Changes = {
 };
 
 export const noChanges = (): Changes => ({ rhythm: new Set(), pitches: new Set(), notes: new Set() });
-
-/** A note's measure, as its index in the part, or −1 when it is not in one. */
-export function measureIndexOf(map: ScoreMap, note: Element): number {
-  return map.measures.findIndex((measure) => measure.element === note.parentElement);
-}
 
 /** Notes whose ties or pitches changed: their measures' accidentals are written again. */
 export function pitchesChanged(changes: Changes, root: Element, notes: Iterable<Element>) {
@@ -59,8 +54,7 @@ function counterpart(element: Element, root: Element, copy: Element): Element {
  * the score, so that one it cannot complete throws its `ScoreEditError` with nothing changed.
  */
 export function operate<T>(document: ScoreDocument, notes: Element[], run: (root: Element, notes: Element[]) => T): T {
-  if (!editabilityOf(document.root).editable) throw new ScoreEditError("not_editable");
-  const part = partsOf(document.root)[0]!;
+  const { part } = editableMap(document);
   for (const note of notes) {
     if (note.localName !== "note" || note.parentElement?.parentElement !== part) {
       throw new ScoreEditError("not_in_score");

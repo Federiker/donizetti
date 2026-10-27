@@ -180,7 +180,22 @@ describe("writeNote", () => {
     expect(scoreText(document)).toBe(text);
   });
 
-  it("refuses to cut into a tuplet, or to number a measure after a number that is not an integer", () => {
+  it("adds measures past the end as appendMeasures does: the final barline moved on, numbers kept", () => {
+    const final = `<barline location="right"><bar-style>light-heavy</bar-style></barline>`;
+    const text = score(attributes(1) + note("C", 4, 4, "whole") + final).replace(`number="1"`, `number="X1"`);
+    const document = readScore(text);
+    writeNote(document, { measure: 0, onset: 0.5 }, { pitch: C4, length: { type: "whole" } });
+    expect(summary(document)).toEqual([
+      ["C4 half", "C4 half-"],
+      ["~C4 half", "r half"],
+    ]);
+    const measures = Array.from(document.root.getElementsByTagName("measure"));
+    expect(measures.map((measure) => measure.getAttribute("number"))).toEqual(["X1", "X1a"]);
+    expect(measures[0]!.getElementsByTagName("barline")).toHaveLength(0);
+    expect(scoreText(document)).toContain(`</note>${final}</measure></part>`);
+  });
+
+  it("refuses to cut into a tuplet", () => {
     const triplet = `<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>`;
     const text = score(
       attributes(3) +
@@ -196,12 +211,6 @@ describe("writeNote", () => {
     // Outside the tuplet, the divisions rise as needed.
     writeNote(document, { measure: 0, onset: 0.25 }, { pitch: D4, length: eighth });
     expect(scoreText(document)).toContain("<divisions>6</divisions>");
-    const numbered = score(attributes(1) + note("C", 4, 4, "whole")).replace(`number="1"`, `number="1a"`);
-    const unnumbered = readScore(numbered);
-    expect(
-      editErrorOf(() => writeNote(unnumbered, { measure: 0, onset: 0.5 }, { pitch: C4, length: { type: "whole" } })),
-    ).toBe("measure_numbers");
-    expect(scoreText(unnumbered)).toBe(numbered);
   });
 
   it("refuses a score that cannot be edited", () => {

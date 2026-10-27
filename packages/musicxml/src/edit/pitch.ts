@@ -4,11 +4,11 @@ import { childNumber } from "../xml";
 import { alterationAt, keyAlteration } from "./accidentals";
 import { ScoreEditError } from "./edit-error";
 import { noteLengthOf, writtenLength } from "./lengths";
-import type { ScorePosition } from "./edit-context";
+import { mappedNote, type ScorePosition } from "./edit-context";
 import { capacityOf } from "./measures";
 import { notePitch, setWrittenLength, templateOf, writePitch } from "./note-elements";
 import { checkPitch } from "./overwrite";
-import { finish, measureIndexOf, noChanges, operate, pitchesChanged } from "./operation";
+import { finish, noChanges, operate, pitchesChanged } from "./operation";
 import { middleLine, staffStep } from "./stems";
 import { chordOf, hasTie, tiePartner, untie } from "./ties";
 
@@ -83,14 +83,14 @@ export function setPitch(document: ScoreDocument, note: Element, pitch: Pitch): 
     const element = target!;
     const changes = noChanges();
     const map = mapScore(root)!;
-    const measure = measureIndexOf(map, element);
+    const mapped = mappedNote(map, element);
+    const measure = mapped.measure;
     const old = notePitch(element);
     checkChord(element, pitch);
     if (!old || midiOf(old) !== midiOf(pitch)) pitchesChanged(changes, root, untie(element));
     writePitch(element, pitch);
     if (!old) {
       // A rest becoming a note: a measure rest needs a type, and the note a stem where the part writes them.
-      const mapped = map.measures[measure]!.notes.find((other) => other.element === element)!;
       const length = writtenLength(element) ?? noteLengthOf(mapped.length);
       if (!length) throw new ScoreEditError("unsupported_rhythm", { measure: String(measure) });
       setWrittenLength(element, childNumber(element, "duration") ?? 0, length, templateOf(map.part).stems);
@@ -115,7 +115,7 @@ export function transpose(document: ScoreDocument, note: Element, semitones: num
     const pitch = notePitch(element);
     if (!pitch) throw new ScoreEditError("not_a_note");
     const map = mapScore(root)!;
-    const measure = map.measures[measureIndexOf(map, element)]!;
+    const measure = map.measures[mappedNote(map, element).measure]!;
     const moved = transposedPitch(pitch, semitones, measure.fifths);
     checkPitch(moved);
     const changes = noChanges();
@@ -193,10 +193,8 @@ export function pitchAbove(document: ScoreDocument, note: Element, interval: num
   const pitch = notePitch(note);
   if (!pitch) throw new ScoreEditError("not_a_note");
   const map = mapScore(document.root)!;
-  const index = measureIndexOf(map, note);
-  const measure = map.measures[index];
-  if (!measure) throw new ScoreEditError("not_in_score");
-  const onset = measure.notes.find((other) => other.element === note)!.onset;
+  const { measure: index, onset } = mappedNote(map, note);
+  const measure = map.measures[index]!;
   const target = pitchAtStep(staffStep(pitch) + interval - 1, 0);
   return { ...target, alter: alterationAt(measure, onset, target.step, target.octave) };
 }

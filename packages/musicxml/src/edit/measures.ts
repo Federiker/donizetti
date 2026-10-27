@@ -1,11 +1,13 @@
 import { EPSILON, type MappedMeasure, type MappedNote, type ScoreMap } from "../score-map";
 import type { ScoreDocument } from "../score-document";
-import { childElement, childElements, childNumber, childText } from "../xml";
+import { childElement, childElements, childNumber } from "../xml";
 import { addToBarline, barlineAt } from "./barlines";
 import { editableMap, insertInMeasure } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
 import { endingsOf } from "./endings";
 import { rejoinLyrics } from "./lyrics";
+import { createNote, templateOf } from "./note-elements";
+import { hasTie, removeTie } from "./ties";
 import {
   cloneUnlaidOut,
   createElement,
@@ -51,17 +53,70 @@ function divisionsAtEnd(measure: MappedMeasure): number {
   return set.at(-1) ?? measure.divisions;
 }
 
-/** A whole-measure rest for a measure of this length, in these divisions, as MuseScore 4 writes one. */
-function measureRest(map: ScoreMap, xml: XMLDocument, duration: number): Element {
-  const voiced = map.measures.flatMap((measure) => measure.notes).find((note) => childElement(note.element, "voice"));
-  return createElement(xml, "note", [
-    createElement(xml, "rest", undefined, { measure: "yes" }),
-    createElement(xml, "duration", String(duration)),
-    ...(voiced ? [createElement(xml, "voice", childText(voiced.element, "voice") ?? "1")] : []),
-  ]);
-}
-
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
+
+/**
+ * Adds empty measures before a measure of the part (`beforeIndex` the number of measures to add them at the
+ * end), as `insertMeasures` does but within an edit already under way: note input running past the end of the
+ * score adds them so. Each is a whole-measure rest (`<rest measure="yes"/>`) of `length` whole notes, by
+ * default the time in force there: that of the measure before, or of the first measure when they go first.
+ * Everything is checked before anything changes. Returns the new `<measure>`s.
+ */
+export function addMeasures(map: ScoreMap, beforeIndex: number, count: number, length?: number): Element[] {
+  if (!Number.isInteger(count) || count < 1) throw new ScoreEditError("invalid_count", { count: String(count) });
+  const total = map.measures.length;
+  if (!Number.isInteger(beforeIndex) || beforeIndex < 0 || beforeIndex > total) {
+    throw new ScoreEditError("not_in_score", { measure: String(beforeIndex) });
+  }
+  const source = map.measures[Math.max(0, beforeIndex - 1)];
+  const wholeNotes = length ?? source?.expectedLength ?? null;
+  if (!source || wholeNotes === null) throw new ScoreEditError("no_time_signature");
+  const divisions = beforeIndex === 0 ? source.divisions : divisionsAtEnd(source);
+  const duration = wholeNotes * 4 * divisions;
+  if (Math.abs(duration - Math.round(duration)) > EPSILON) {
+    throw new ScoreEditError("length_not_in_divisions", {
+      divisions: String(divisions),
+      length: String(wholeNotes),
+    });
+  }
+  const first = consecutiveFrom(map.measures);
+  const base = beforeIndex === 0 ? "0" : source.number;
+  const following = map.measures[beforeIndex]?.element ?? null;
+  const xml = map.part.ownerDocument;
+  const template = templateOf(map.part);
+  const added: Element[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const number =
+      first === null
+        ? base + LETTERS[index % LETTERS.length]!.repeat(1 + Math.floor(index / LETTERS.length))
+        : String(first + beforeIndex + index);
+    // A whole-measure rest, written as the part's notes are (MuseScore writes its voice).
+    const rest = createNote(xml, template, { pitch: null, duration: Math.round(duration), length: null });
+    added.push(insertElement(map.part, createElement(xml, "measure", [rest], { number }), following));
+  }
+  if (beforeIndex === 0) {
+    // The score's opening key, time and clef stay at its start.
+    const rest = added[0]!.firstElementChild;
+    for (const element of leading(following!)) {
+      if (element.localName === "attributes") moveElement(element, added[0]!, rest);
+    }
+  } else if (beforeIndex === total) {
+    // A final barline stays at the end of the score.
+    const last = map.measures[total - 1]!.element;
+    const barline = barlineAt(last, "right");
+    const children = barline ? Array.from(barline.children) : [];
+    if (
+      barline &&
+      children.length === 1 &&
+      children[0]!.localName === "bar-style" &&
+      (children[0]!.textContent ?? "").trim() === "light-heavy"
+    ) {
+      moveElement(barline, added.at(-1)!);
+    }
+  }
+  if (first !== null) renumber(map.part, first);
+  return added;
+}
 
 /**
  * Inserts empty measures before a measure (`beforeIndex` the number of measures to add them at the end), each
@@ -72,55 +127,8 @@ const LETTERS = "abcdefghijklmnopqrstuvwxyz";
  */
 export function insertMeasures(document: ScoreDocument, beforeIndex: number, count: number): Element[] {
   const map = editableMap(document);
-  if (!Number.isInteger(count) || count < 1) throw new ScoreEditError("invalid_count", { count: String(count) });
-  const total = map.measures.length;
-  if (!Number.isInteger(beforeIndex) || beforeIndex < 0 || beforeIndex > total) {
-    throw new ScoreEditError("not_in_score", { measure: String(beforeIndex) });
-  }
-  const source = map.measures[Math.max(0, beforeIndex - 1)];
-  const length = source?.expectedLength ?? null;
-  if (!source || length === null) throw new ScoreEditError("no_time_signature");
-  const divisions = beforeIndex === 0 ? source.divisions : divisionsAtEnd(source);
-  const duration = length * 4 * divisions;
-  if (Math.abs(duration - Math.round(duration)) > EPSILON) {
-    throw new ScoreEditError("length_not_in_divisions", { divisions: String(divisions), length: String(length) });
-  }
-  const first = consecutiveFrom(map.measures);
-  const base = beforeIndex === 0 ? "0" : source.number;
-  const following = map.measures[beforeIndex]?.element ?? null;
-  return edit(document, (xml) => {
-    const added: Element[] = [];
-    for (let index = 0; index < count; index += 1) {
-      const number =
-        first === null
-          ? base + LETTERS[index % LETTERS.length]!.repeat(1 + Math.floor(index / LETTERS.length))
-          : String(first + beforeIndex + index);
-      const measure = createElement(xml, "measure", [measureRest(map, xml, Math.round(duration))], { number });
-      added.push(insertElement(map.part, measure, following));
-    }
-    if (beforeIndex === 0) {
-      // The score's opening key, time and clef stay at its start.
-      const rest = added[0]!.firstElementChild;
-      for (const element of leading(following!)) {
-        if (element.localName === "attributes") moveElement(element, added[0]!, rest);
-      }
-    } else if (beforeIndex === total) {
-      // A final barline stays at the end of the score.
-      const last = map.measures[total - 1]!.element;
-      const barline = barlineAt(last, "right");
-      const children = barline ? Array.from(barline.children) : [];
-      if (
-        barline &&
-        children.length === 1 &&
-        children[0]!.localName === "bar-style" &&
-        (children[0]!.textContent ?? "").trim() === "light-heavy"
-      ) {
-        moveElement(barline, added.at(-1)!);
-      }
-    }
-    if (first !== null) renumber(map.part, first);
-    return added;
-  });
+  // `addMeasures` refuses before it changes anything: a refused edit leaves the revision as it was.
+  return edit(document, () => addMeasures(map, beforeIndex, count));
 }
 
 /** Adds empty measures at the end of the part (`insertMeasures` after the last one). */
@@ -158,16 +166,6 @@ function lastTempo(measures: MappedMeasure[]): Element | null {
 const tempoValue = (direction: Element | null) =>
   direction ? (childElement(direction, "sound")?.getAttribute("tempo") ?? null) : null;
 
-/** Whether a note has a tie of this type: `<tie>` or `<notations><tied>`. */
-function hasTie(note: Element, type: "start" | "stop"): boolean {
-  return (
-    childElements(note, "tie").some((tie) => tie.getAttribute("type") === type) ||
-    childElements(note, "notations").some((notations) =>
-      childElements(notations, "tied").some((tied) => tied.getAttribute("type") === type),
-    )
-  );
-}
-
 /** The first and the last notes (a chord's every note) sounding of these, grace notes aside. */
 function firstTimed(notes: MappedNote[]): MappedNote[] {
   const timed = notes.filter((note) => !note.grace);
@@ -178,15 +176,6 @@ function lastTimed(notes: MappedNote[]): MappedNote[] {
   const timed = notes.filter((note) => !note.grace);
   const last = timed.at(-1);
   return timed.filter((note) => note.measure === last?.measure && note.onset === last?.onset);
-}
-
-/** Takes the ties from a note's start or end: `<tie>` and `<notations><tied>` of that type. */
-function untie(note: Element, type: "start" | "stop") {
-  for (const tie of childElements(note, "tie")) if (tie.getAttribute("type") === type) removeElement(tie);
-  for (const notations of childElements(note, "notations")) {
-    for (const tied of childElements(notations, "tied")) if (tied.getAttribute("type") === type) removeElement(tied);
-    if (notations.children.length === 0) removeElement(notations);
-  }
 }
 
 /**
@@ -214,7 +203,7 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
   const removedNotes = removed.flatMap((measure) => measure.notes);
   const firstNotes = firstTimed(removedNotes);
   const lastNotes = lastTimed(removedNotes);
-  edit(document, (xml) => {
+  edit(document, () => {
     if (next) {
       const firstNote = next.notes[0]?.element ?? null;
       const opening = leading(next.element);
@@ -234,10 +223,9 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
           for (const [, element] of carried) insertInOrder(attributes, cloneUnlaidOut(element), "attributes");
         else {
           const children = carried.map(([, element]) => cloneUnlaidOut(element));
-          // In the schema's order, after the measure's print and left barline.
+          // In the schema's order.
           children.sort((a, b) => CARRIED.indexOf(a.localName as never) - CARRIED.indexOf(b.localName as never));
-          const after = opening.find((element) => !["print", "barline"].includes(element.localName)) ?? firstNote;
-          insertElement(next.element, createElement(xml, "attributes", children), after);
+          addAttributesAtStart(next.element, children);
         }
       }
       // A tempo that still matters.
@@ -260,7 +248,7 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
       }
       // Ties out of them.
       if (lastNotes.some((note) => hasTie(note.element, "start"))) {
-        for (const note of next.notes.filter((candidate) => candidate.onset < EPSILON)) untie(note.element, "stop");
+        for (const note of next.notes.filter((candidate) => candidate.onset < EPSILON)) removeTie(note.element, "stop");
       }
     }
     if (previous) {
@@ -271,7 +259,7 @@ export function removeMeasures(document: ScoreDocument, fromIndex: number, count
       }
       // Ties into them.
       if (firstNotes.some((note) => hasTie(note.element, "stop"))) {
-        for (const note of lastTimed(previous.notes)) untie(note.element, "start");
+        for (const note of lastTimed(previous.notes)) removeTie(note.element, "start");
       }
     }
     rejoinLyrics(map, new Set(removed.flatMap((measure) => measure.notes.map((note) => note.element))));
@@ -318,17 +306,4 @@ export function consecutiveNumbers(numbers: string[]): boolean {
   return numbers.every(
     (number, index) => /^\d+$/.test(number) && (index === 0 || Number(number) === Number(numbers[index - 1]) + 1),
   );
-}
-
-/**
- * Adds an empty measure at the end of the part, numbered after the last, holding the given content (a measure
- * rest). Throws `measure_numbers` when the last measure's number is not a plain integer.
- */
-export function appendMeasure(map: ScoreMap, content: Element[]): Element {
-  const last = map.measures.at(-1);
-  const number = last ? last.number : "0";
-  if (!/^\d+$/.test(number)) throw new ScoreEditError("measure_numbers", { number });
-  const measure = createElement(map.part.ownerDocument, "measure", content, { number: String(Number(number) + 1) });
-  const after = last?.element.nextElementSibling ?? null;
-  return insertElement(map.part, measure, after);
 }

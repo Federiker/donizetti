@@ -260,9 +260,10 @@ for each tied piece) and `next`, the cursor's position after them.
   or more, in compound time. A whole empty measure is a measure rest,
   `<rest measure="yes"/>` without a `<type>`, as MuseScore writes it.
 - A note crossing the barline is split and tied into the next measure; past
-  the last measure, measures are added, each holding a measure rest and
-  numbered after the last (`measure_numbers` when the last number is not a
-  plain integer). The barlines stay where they were.
+  the last measure, measures are added as `appendMeasures` adds them (see
+  [Measures](#measures)): each a measure rest of the last measure's time,
+  numbered as new measures are, a plain final barline moved on to the new
+  last measure. The other barlines stay where they were.
 - Chord symbols, directions, sounds and the other elements keep their time:
   before the note that starts at it, or, when it now falls inside a note,
   before that note with an `<offset>` (`<harmony>`, `<direction>`, `<sound>`);

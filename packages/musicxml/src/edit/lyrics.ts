@@ -1,8 +1,9 @@
 import type { MappedNote, ScoreMap } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { childElements } from "../xml";
-import { chordHead, editableMap, isTiedFrom, mappedNote, notesOf } from "./edit-context";
+import { chordHead, editableMap, mappedNote, notesOf } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
+import { hasTie } from "./ties";
 import { createElement, edit, insertElement, insertInOrder, removeChildren, removeElement } from "./xml-edit";
 
 /**
@@ -123,7 +124,7 @@ export function lyricOf(note: Element, verse = "1"): Lyric | null {
 export function lyricRefusal(note: MappedNote): "rest" | "grace" | "tied" | null {
   if (note.rest) return "rest";
   if (note.grace) return "grace";
-  if (isTiedFrom(note.element)) return "tied";
+  if (hasTie(note.element, "stop")) return "tied";
   return null;
 }
 

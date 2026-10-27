@@ -1,10 +1,11 @@
 import { mapScore, midiOf, type Pitch } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { childElement, childElements, childNumber } from "../xml";
+import { mappedNote } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
 import { writtenLength } from "./lengths";
 import { createNote, notePitch, templateOfNote } from "./note-elements";
-import { type Changes, finish, measureIndexOf, noChanges, operate, pitchesChanged } from "./operation";
+import { type Changes, finish, noChanges, operate, pitchesChanged } from "./operation";
 import { checkPitch } from "./overwrite";
 import { chordOf, nextChord, previousChord, untie } from "./ties";
 import { createElement, insertElement, insertInOrder, removeChildren, removeElement, stripLayout } from "./xml-edit";
@@ -59,7 +60,7 @@ function handOver(from: Element, to: Element) {
 /** Removes a note from its chord, its ties undone; when it is the chord's first, the next note takes its place. */
 function removeFromChord(root: Element, note: Element, changes: Changes): Element {
   const chord = chordOf(note);
-  const measure = measureIndexOf(mapScore(root)!, note);
+  const measure = mappedNote(mapScore(root)!, note).measure;
   pitchesChanged(changes, root, untie(note));
   let first = chord[0]!;
   if (note === first) {
@@ -104,7 +105,7 @@ export function toRest(document: ScoreDocument, note: Element): Element {
       finish(root, changes);
       return first;
     }
-    const measure = measureIndexOf(mapScore(root)!, element);
+    const measure = mappedNote(mapScore(root)!, element).measure;
     pitchesChanged(changes, root, untie(element));
     const neighbours = [...(previousChord(element) ?? []), ...(nextChord(element) ?? [])];
     const pitch = childElement(element, "pitch")!;

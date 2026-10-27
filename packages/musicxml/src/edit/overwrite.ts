@@ -4,8 +4,8 @@ import { childElement, childElements } from "../xml";
 import { divisionsFactor, scaleDivisions, toDivisions } from "./divisions";
 import { ScoreEditError } from "./edit-error";
 import { beatOf, isNoteLength, type NoteLength, restLengths, splitLength, wholeNotesOf } from "./lengths";
-import type { ScorePosition } from "./edit-context";
-import { appendMeasure, capacityOf } from "./measures";
+import { mappedNote, type ScorePosition } from "./edit-context";
+import { addMeasures, capacityOf } from "./measures";
 import {
   createNote,
   type NoteTemplate,
@@ -14,7 +14,7 @@ import {
   templateOf,
   templateOfNote,
 } from "./note-elements";
-import { type Changes, finish, measureIndexOf, noChanges, operate, pitchesChanged } from "./operation";
+import { type Changes, finish, noChanges, operate, pitchesChanged } from "./operation";
 import { chordOf, tieNotes, untie } from "./ties";
 import { arrange, contentEnd, readVoice, type Voice, type VoiceEvent } from "./voice";
 import { removeElement, stripLayout } from "./xml-edit";
@@ -194,8 +194,10 @@ export function writeSpan(
   const count = map.measures.length;
   const { measure: start, onset: startOnset } = position;
   const last = map.measures.at(-1);
-  const added = last ? (last.expectedLength ?? capacityOf(last)) : 1;
-  const capacity = (index: number) => (index < count ? capacityOf(map.measures[index]!) : added > 0 ? added : 1);
+  // How long a measure added at the end is: the last one's time signature, else its length.
+  const lastLength = last ? (last.expectedLength ?? capacityOf(last)) : 1;
+  const added = lastLength > 0 ? lastLength : 1;
+  const capacity = (index: number) => (index < count ? capacityOf(map.measures[index]!) : added);
   if (
     !Number.isInteger(start) ||
     start < 0 ||
@@ -251,10 +253,10 @@ export function writeSpan(
 
   const xml = root.ownerDocument;
   const template = templateOf(map.part);
-  for (let index = count; index <= segments.at(-1)!.measure; index += 1) {
-    const divisions = map.measures.at(-1)?.divisions ?? 1;
-    const duration = toDivisions(added, divisions)!;
-    appendMeasure(map, [createNote(xml, template, { pitch: null, duration, length: null })]);
+  // Past the end of the part: measures added as `appendMeasures` adds them.
+  const missing = segments.at(-1)!.measure + 1 - count;
+  if (missing > 0) {
+    addMeasures(map, count, missing, added);
     map = mapScore(root)!;
   }
 
@@ -338,9 +340,9 @@ export function placeOf(
   note: Element,
 ): { map: ScoreMap; measure: number; onset: number; length: number } {
   const map = mapScore(root)!;
-  const measure = measureIndexOf(map, note);
-  const mapped = map.measures[measure]!.notes.find((other) => other.element === chordOf(note)[0]);
-  if (!mapped || mapped.grace || childElement(note, "time-modification")) {
+  const mapped = mappedNote(map, chordOf(note)[0]!);
+  const measure = mapped.measure;
+  if (mapped.grace || childElement(note, "time-modification")) {
     throw new ScoreEditError("unsupported_rhythm", { measure: String(measure) });
   }
   return { map, measure, onset: mapped.onset, length: mapped.length };

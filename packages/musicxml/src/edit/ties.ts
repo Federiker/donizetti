@@ -66,10 +66,11 @@ export function previousChord(note: Element): Element[] | null {
   return null;
 }
 
+/** A note's `<tie>`s and `<tied>`s of this type, in every `<notations>` it has (a note may have several). */
 const tieElements = (note: Element, type: TieType) => [
   ...childElements(note, "tie").filter((tie) => tie.getAttribute("type") === type),
-  ...childElements(childElement(note, "notations") ?? note, "tied").filter(
-    (tied) => tied.getAttribute("type") === type,
+  ...childElements(note, "notations").flatMap((notations) =>
+    childElements(notations, "tied").filter((tied) => tied.getAttribute("type") === type),
   ),
 ];
 
@@ -112,8 +113,9 @@ export function addTie(note: Element, type: TieType) {
 /** Removes this end of a tie from a note, `<tie>` and `<tied>`, and its `<notations>` when nothing else is left in them. */
 export function removeTie(note: Element, type: TieType) {
   for (const element of tieElements(note, type)) removeElement(element);
-  const notations = childElement(note, "notations");
-  if (notations && notations.children.length === 0) removeElement(notations);
+  for (const notations of childElements(note, "notations")) {
+    if (notations.children.length === 0) removeElement(notations);
+  }
 }
 
 const midiOfNote = (note: Element) => {
