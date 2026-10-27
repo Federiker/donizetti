@@ -62,6 +62,46 @@ describe("insertMeasures and appendMeasures", () => {
     expect(scoreText(document)).toBe(score(OPENING + rest(4), rest(4), note("C"), note("D")));
   });
 
+  it("moves the opening layout, attributes and tempo to the new first measure, as they were written", () => {
+    const text = fixtureText("musescore/lead-sheet.musicxml");
+    const document = readScore(text);
+    insertMeasures(document, 0, 1);
+    const opening = measureText(text, "1");
+    const piece = (from: string, to: string) => {
+      const start = opening.indexOf(from);
+      return `\n      ${opening.slice(start, opening.indexOf(to, start) + to.length)}`;
+    };
+    const print = piece("<print>", "</print>");
+    const attributes = piece("<attributes>", "</attributes>");
+    const tempo = piece(`<direction placement="above" system="only-top">`, "</direction>");
+    const written = scoreText(document);
+    expect(measureText(written, "1")).toBe(
+      `<measure number="1">${print}${attributes}${tempo}
+      <note>
+        <rest measure="yes"/>
+        <duration>8</duration>
+        <voice>1</voice>
+        </note>
+      </measure>`,
+    );
+    // The old first measure keeps its repeat, its chord symbol and its notes, written as they were.
+    expect(measureText(written, "2")).toBe(
+      opening.replace(`number="1"`, `number="2"`).replace(print, "").replace(attributes, "").replace(tempo, ""),
+    );
+    expect(mapScore(document.root)!.measures[1]).toMatchObject({ fifths: 1, time: { beats: 4, beatType: 4 } });
+  });
+
+  it("leaves the first measure's other directions and a tempo later in it where they were", () => {
+    const words = `<direction><direction-type><words>Swing</words></direction-type></direction>`;
+    const tempo = `<direction><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>90</per-minute></metronome></direction-type><sound tempo="90"/></direction>`;
+    const later = `<direction><direction-type><words>a tempo</words></direction-type><offset>2</offset><sound tempo="80"/></direction>`;
+    const document = readScore(score(`<print new-system="yes"/>${OPENING}${words}${tempo}${later}${note("C")}`));
+    insertMeasures(document, 0, 1);
+    expect(scoreText(document)).toBe(
+      score(`<print new-system="yes"/>${OPENING}${tempo}${rest(4)}`, `${words}${later}${note("C")}`),
+    );
+  });
+
   it("takes the time in force before the measures it goes before", () => {
     const document = readScore(
       score(attributes(`<divisions>2</divisions>${time(3, 4)}`) + note("C", 6), attributes(time(2, 4)) + note("D", 4)),

@@ -32,6 +32,23 @@ function leading(measure: Element): Element[] {
   return elements;
 }
 
+/** Whether an element sets a tempo: a `<sound tempo>`, or a direction with one or a metronome mark. */
+const setsTempo = (element: Element) =>
+  (element.localName === "sound" && element.hasAttribute("tempo")) ||
+  (element.localName === "direction" &&
+    (childElements(element, "sound").some((sound) => sound.hasAttribute("tempo")) ||
+      childElements(element, "direction-type").some((type) => childElement(type, "metronome") !== null)));
+
+/**
+ * Whether an element at the start of the first measure belongs to the start of the score rather than to that
+ * measure (owner decision, 27 October 2026): its `<print>` (the page and system layout), its opening
+ * `<attributes>` and its tempo at onset 0. Measures put before it take them, so the score still starts as it did.
+ */
+function opensScore(element: Element): boolean {
+  if (element.localName === "print" || element.localName === "attributes") return true;
+  return setsTempo(element) && (childNumber(element, "offset") ?? 0) === 0;
+}
+
 /** The divisions in force at the end of a measure. */
 function divisionsAtEnd(measure: MappedMeasure): number {
   const set = childElements(measure.element, "attributes")
@@ -75,10 +92,10 @@ export function addMeasures(map: ScoreMap, beforeIndex: number, count: number, l
     added.push(insertElement(map.part, createElement(xml, "measure", [rest], { number: "" }), following));
   }
   if (beforeIndex === 0) {
-    // The score's opening key, time and clef stay at its start.
+    // The score still starts as it did: its layout, key, time, clef and tempo move to the new first measure.
     const rest = added[0]!.firstElementChild;
     for (const element of leading(following!)) {
-      if (element.localName === "attributes") moveElement(element, added[0]!, rest);
+      if (opensScore(element)) moveElement(element, added[0]!, rest);
     }
   } else if (beforeIndex === total) {
     // A final barline stays at the end of the score.
@@ -101,9 +118,9 @@ export function addMeasures(map: ScoreMap, beforeIndex: number, count: number, l
 /**
  * Inserts empty measures before a measure (`beforeIndex` the number of measures to add them at the end), each
  * a whole-measure rest (`<rest measure="yes"/>`) of the time in force there: that of the measure before, or
- * of the first measure when they go first, whose key, time and clef (its opening `<attributes>`) then move to
- * the new first measure. Measures numbered 1, 2, 3… are renumbered; others keep their numbers, and new ones
- * take the number before with a letter (12a, 12b). Returns the new `<measure>`s.
+ * of the first measure when they go first, whose `<print>` layout, opening `<attributes>` (key, time, clef) and
+ * opening tempo then move to the new first measure. Measures numbered 1, 2, 3… are renumbered; others keep their
+ * numbers, and new ones take the number before with a letter (12a, 12b). Returns the new `<measure>`s.
  */
 export function insertMeasures(document: ScoreDocument, beforeIndex: number, count: number): Element[] {
   const map = editableMap(document);

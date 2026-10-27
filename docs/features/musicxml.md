@@ -188,10 +188,14 @@ of these back, its own exports included, as plain staff text, not as jumps.
 
 - `insertMeasures(document, before, count)` and `appendMeasures(document,
   count)` add whole-measure rests (`<rest measure="yes"/>`, its `<duration>`
-  and `<voice>`, as MuseScore writes them) of the time in force before them;
-  measures put first take the opening `<attributes>` (key, time, clef,
-  divisions) with them, and a plain final barline moves to the new last
-  measure. `no_time_signature` and `length_not_in_divisions` refuse a length
+  and `<voice>`, as MuseScore writes them) of the time in force before them,
+  and a plain final barline moves to the new last measure. Measures put first
+  (owner decision, 27 October 2026) take with them what starts the score, so
+  it still starts as before: the `<print>` layout, the opening `<attributes>`
+  (key, time, clef, divisions) and the opening tempo mark (a `<direction>`
+  with a `<metronome>` or `<sound tempo>` at onset 0), each moved as it was
+  written; the old first measure keeps its barlines, chord symbols, other
+  directions and a tempo later in it. `no_time_signature` and `length_not_in_divisions` refuse a length
   the score cannot write.
 - `removeMeasures(document, from, count)` moves on to the measure after what
   the removed measures changed that it still goes by: key, time, clef,

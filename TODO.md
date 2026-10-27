@@ -121,6 +121,3 @@ The first round (owner decisions, 27 October 2026; see
     degrees written with `print-object="no"` beside `text="7sus4"`, as
     MusicXML 4.0 asks, where MuseScore writes `text="74"` with the degree
     printed.
-  - [ ] Inserting measures first: only the opening `<attributes>` move to the
-    new first measure; the opening tempo and `<print>` layout stay on the
-    measure they were on.
