@@ -50,6 +50,12 @@ run = "bun scripts/clean.ts"
 description = "Check, build and verify the release's tarballs and list what releasing does (--allow-dirty, --skip-checks)"
 run = "bun scripts/release.ts"
 
+[tasks.tag]
+description = "Set the version, commit it, tag v<version> and push them, then release (asking at each step)"
+run = "bun scripts/tag.ts"
+# The questions are read from the terminal.
+raw = true
+
 [tasks.release]
 description = "Release the pushed tag v<version>: the GitHub release and its tarballs (GITHUB_TOKEN in .env)"
 run = "bun scripts/release.ts --release"

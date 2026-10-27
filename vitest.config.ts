@@ -2,9 +2,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    // Every package's tests in one run (`mise run test`); each package keeps its own config for its
-    // environment and setup, and `bun run --filter <package> test` still runs one package alone.
-    projects: ["packages/*"],
+    // Every package's tests and the scripts' in one run (`mise run test`); each package keeps its own
+    // config for its environment and setup, and `bun run --filter <package> test` still runs one
+    // package alone.
+    projects: ["packages/*", "scripts"],
     // `mise run coverage` (and CI): the packages' sources must stay at 80% or more on every measure
     // (owner decision, 27 October 2026; see docs/development.md, decision 13).
     coverage: {
