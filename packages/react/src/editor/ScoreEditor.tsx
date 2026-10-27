@@ -24,7 +24,7 @@ import {
   useState,
 } from "react";
 
-import { type DrawnScore, noteElementAt, selectionElementsOf } from "../drawing/drawn-score";
+import { type DrawnScore, noteElementAt, selectionElementsOf, verseLineY } from "../drawing/drawn-score";
 import { useDrawing } from "../drawing/use-drawing";
 import { type Theme, useInk } from "../drawing/use-ink";
 import { runEdit } from "../editing/commands";
@@ -84,7 +84,7 @@ export type ScoreEditorProps = {
    * was not saved but nothing went wrong (the user cancelled a dialog): the score stays unsaved, with no
    * failure shown. Throwing or rejecting shows that saving failed.
    */
-  onSave?: (file: SavedScore) => void | boolean | Promise<void | boolean>;
+  onSave?: (file: SavedScore) => unknown;
   /**
    * Called by Export with the exported score. Without it, MIDI and SVG are downloaded and PDF printed through
    * the browser; a Tauri host writes them, and makes the PDF, with `@donizetti/tauri`.
@@ -415,7 +415,10 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     }
   }
 
-  /** Where the text field goes: by the note's head, under it for lyrics, above the staff for chord symbols. */
+  /**
+   * Where the text field goes: by the note's head; for lyrics on the verse's own line (where OSMD drew that
+   * verse in the system, else under the note), for chord symbols above the staff.
+   */
   function anchorOf(entry: TextEntryState) {
     const element = map ? entryNote(map, entry) : null;
     const shown = element && drawn ? drawn.drawnOf.get(element) : undefined;
@@ -423,7 +426,10 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     const box = frame.current?.getBoundingClientRect();
     if (!head || !box) return { left: 0, top: 0, bottom: 0 };
     const rect = head.getBoundingClientRect();
-    return { left: rect.left - box.left, top: rect.top - box.top - 36, bottom: rect.bottom - box.top + 36 };
+    const verse = entry.kind === "lyrics" && drawn && shown ? verseLineY(drawn, shown, entry.verse) : null;
+    // The field is about 24 px high: centred on the verse's line.
+    const bottom = verse !== null ? verse - box.top - 14 : rect.bottom - box.top + 36;
+    return { left: rect.left - box.left, top: rect.top - box.top - 36, bottom };
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {

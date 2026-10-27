@@ -76,3 +76,31 @@ export function selectionElementsOf(score: DrawnScore, drawn: GraphicalNote): El
   const group = parts.getSVGGElement?.();
   return group ? [group] : [];
 }
+
+/** Client pixels between two verse lines, for a verse not drawn yet in this system. */
+const VERSE_SPACING = 24;
+
+/**
+ * Where a verse's lyrics are drawn in the note's system (client y of their line), from the lyrics OSMD drew
+ * there; a verse with none yet goes a line under the verse above it. Null when the system has no lyrics at all.
+ */
+export function verseLineY(score: DrawnScore, drawn: GraphicalNote, verse: number): number | null {
+  const line = drawn.parentVoiceEntry?.parentStaffEntry?.parentMeasure?.ParentStaffLine;
+  if (!line) return null;
+  const found = new Map<string, number>();
+  for (const measure of line.Measures) {
+    for (const staffEntry of measure?.staffEntries ?? []) {
+      for (const lyric of staffEntry.LyricsEntries ?? []) {
+        const number = lyric.LyricsEntry.VerseNumber;
+        if (found.has(number)) continue;
+        const at = lyric.GraphicalLabel.PositionAndShape.AbsolutePosition;
+        found.set(number, score.osmd.GraphicSheet.svgToDom(new score.point(at.x * 10, at.y * 10)).y);
+      }
+    }
+  }
+  for (let above = verse; above >= 1; above -= 1) {
+    const y = found.get(String(above));
+    if (y !== undefined) return y + (verse - above) * VERSE_SPACING;
+  }
+  return null;
+}
