@@ -115,6 +115,12 @@ export function setTime(
     const map = mapScore(root)!;
     const mapped = map.measures[measure];
     if (!mapped) throw new ScoreEditError("not_in_score", { measure: String(measure) });
+    let end = measure + 1;
+    while (end < map.measures.length && !changesTime(map.measures[end]!.element)) end += 1;
+    const start = mapped.implicit ? measure + 1 : measure;
+    const changes = noChanges();
+    // The music is re-barred first, read in the bars of the old time; the measure's own element stays first.
+    const count = start < end ? rebar(root, start, end, { beats, beatType }, changes) : 0;
     const attributes = attributesAtStart(mapped.element);
     const existing = attributes ? childElement(attributes, "time") : null;
     const previous = measure > 0 ? map.measures[measure - 1]!.time : null;
@@ -131,11 +137,6 @@ export function setTime(
       ]);
       addToStart(mapped.element, time);
     }
-    let end = measure + 1;
-    while (end < map.measures.length && !changesTime(map.measures[end]!.element)) end += 1;
-    const start = mapped.implicit ? measure + 1 : measure;
-    const changes = noChanges();
-    const count = start < end ? rebar(root, start, end, beats / beatType, changes) : 0;
     finish(root, changes);
     return { from: measure, to: Math.max(start + count, measure + 1) };
   });

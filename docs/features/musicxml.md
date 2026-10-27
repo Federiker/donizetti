@@ -364,7 +364,8 @@ for each tied piece) and `next`, the cursor's position after them.
   way (a repeat of the one in force removed; `symbol="common"` or `cut`
   dropped when it no longer fits; composite signatures replaced) and
   **re-bars** the music up to the next time change: the measures are read as
-  one stream, each note goes into the new bar it starts in, split and tied
+  one stream, each as long as its old time signature made it (so 2/4 bars
+  going to 4/4 join in twos), each note goes into the new bar it starts in, split and tied
   across the new barlines, and the last bar is filled with rests; a measure
   rest is kept only where its bar stays a bar. Chord symbols, directions and
   lyrics keep their times; a left barline stays at the bar it starts, a right

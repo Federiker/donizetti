@@ -102,6 +102,23 @@ describe("setTime", () => {
     expect(scoreText(jig)).toContain("<divisions>2</divisions>");
   });
 
+  it("reads the old bars at their old length, so longer bars join them", () => {
+    const text = score(attributes(1) + note("C", 4, 4, "whole"), note("D", 4, 4, "whole"), note("E", 4, 4, "whole"));
+    const document = readScore(text);
+    setTime(document, 0, 2, 4);
+    expect(setTime(document, 0, 4, 4)).toEqual({ from: 0, to: 3 });
+    expect(summary(document)).toEqual([
+      ["C4 half-", "~C4 half"],
+      ["D4 half-", "~D4 half"],
+      ["E4 half-", "~E4 half"],
+    ]);
+    const irregular = readScore(text.replace(`number="2"`, `number="2a"`));
+    setTime(irregular, 0, 2, 4);
+    setTime(irregular, 0, 4, 4);
+    // The measures left keep their numbers; the extra ones go.
+    expect(mapScore(irregular.root)!.measures.map((measure) => measure.number)).toEqual(["1", "2a", "3"]);
+  });
+
   it("keeps bars that already fit, measure rests included", () => {
     const text = score(attributes(1, 3, 4) + rest(3), note("C", 4, 3, "half", "<dot/>"));
     const document = readScore(text);

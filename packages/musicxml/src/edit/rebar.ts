@@ -120,24 +120,33 @@ function gapRests(bars: Bars, index: number, from: number, to: number): VoiceEve
 }
 
 /**
- * Puts the music of measures `start` to `end` (exclusive) into bars of `length` whole notes, as MuseScore does
- * when the time signature changes: the measures are read as one stream, and each note or rest goes into the new
+ * Puts the music of measures `start` to `end` (exclusive) into bars of a new time signature, as MuseScore does
+ * when the time signature changes: the measures are read as one stream, each as long as its old time signature
+ * (or its notes) made it, so this runs before the new time is written; and each note or rest goes into the new
  * bar it starts in, split and tied where it crosses a barline; gaps (the last bar's end, measure rests of the
  * old length) are filled with rests; chord symbols, directions and the other elements keep their times, a left
  * barline the bar it starts, a right one the bar it ends, a `<print>` the start of its bar. The old measure
  * elements are kept in order, new ones added after them or the extra ones removed, and numbered as new measures
  * are (`numberMeasures`) when the count changes. Returns how many bars the stretch now has.
  */
-export function rebar(root: Element, start: number, end: number, length: number, changes: Changes): number {
+export function rebar(
+  root: Element,
+  start: number,
+  end: number,
+  time: { beats: number; beatType: number },
+  changes: Changes,
+): number {
   let map = mapScore(root)!;
+  const length = time.beats / time.beatType;
   const divisions = map.measures[start]!.divisions;
   for (const mapped of map.measures.slice(start, end)) {
     if (mapped.divisions !== divisions) throw cannotRebar("divisions", mapped.index);
   }
   const factor = divisionsFactor(
-    [length, beatOf(map.measures[start]!.time), ...map.measures.slice(start, end).map(capacityOf)].map(
-      (wholeNotes) => ({ wholeNotes, divisions }),
-    ),
+    [length, beatOf(time), ...map.measures.slice(start, end).map(capacityOf)].map((wholeNotes) => ({
+      wholeNotes,
+      divisions,
+    })),
     start,
   );
   if (factor > 1) {
@@ -146,7 +155,6 @@ export function rebar(root: Element, start: number, end: number, length: number,
   }
   const scale = divisions * factor;
   const bar = toDivisions(length, scale)!;
-  const time = map.measures[start]!.time;
   const { events, others, dropped, total } = streamOf(map, start, end, bar);
   const count = Math.max(1, Math.ceil(total / bar - EPSILON));
 
