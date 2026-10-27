@@ -55,12 +55,14 @@ playback needs one. See [Playback](playback.md).
 ## Interface
 
 Plain React and one stylesheet (decision 5). Every colour and size is a
-`--dz-*` variable on `.dz-editor`; dark colours follow
-`prefers-color-scheme`, or `data-theme="dark"` / `"light"` on the editor. The
-drawn score stays on white paper in every theme, as printed music does; in
-forced colours it is drawn in the system's text colour and the selection in
-its highlight colour. Text comes from typed en-GB messages
-(`strings/en-GB.ts`) that the host may replace (decision 6).
+`--dz-*` variable on `.dz-editor`. The `theme` prop is `auto` (the system's
+colour scheme), `light` or `dark`. In a dark theme the score is drawn light
+on dark paper (decision 15): the editor reads `--dz-ink` from the stylesheet
+when it draws, so a host can set its own ink, and forced colours draw the score
+in the system's text colour. SVG and PDF exports and printing are always
+black on white: the score is drawn black for the moment it takes. Text comes
+from typed en-GB messages (`strings/en-GB.ts`) that the host may replace
+(decision 6).
 
 ## Keyboard shortcuts
 

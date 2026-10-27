@@ -1,6 +1,6 @@
 import type { ScoreDocument } from "@donizetti/musicxml";
 import type { OpenSheetMusicDisplay, PointF2D } from "opensheetmusicdisplay";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 
 import { type DrawnScore, indexDrawing } from "./drawn-score";
 
@@ -8,20 +8,36 @@ export type DrawingStatus = "loading" | "ready" | "failed";
 
 type Osmd = { osmd: OpenSheetMusicDisplay; point: typeof PointF2D };
 
+/** The ink of printed music: exports and printing are black on white in every theme (decision 15). */
+const PRINTED_INK = "#000000";
+
+/** The colours OSMD draws in: the notes, the title and the text (lyrics, chord symbols, directions). */
+function inkOptions(ink: string) {
+  return { defaultColorMusic: ink, defaultColorTitle: ink, defaultColorLabel: ink };
+}
+
 /**
- * Draws the score's text into the container with OpenSheetMusicDisplay (loaded on first use), again after each
- * change (redrawing a lead sheet takes well under 0.1 s) and when the container's width changes, then indexes
- * what it drew so clicks and the selection find their `<note>`s.
+ * Draws the score's text into the container with OpenSheetMusicDisplay (loaded on first use), in the theme's
+ * ink, again after each change (redrawing a lead sheet takes well under 0.1 s), when the container's width or
+ * the ink changes, then indexes what it drew so clicks and the selection find their `<note>`s. For exports and
+ * printing, `printed` draws it black for a moment.
  */
 export function useDrawing(
   container: RefObject<HTMLDivElement | null>,
   document: ScoreDocument | null,
   text: string | null,
-): { status: DrawingStatus; drawn: DrawnScore | null } {
+  ink: string,
+): {
+  status: DrawingStatus;
+  drawn: DrawnScore | null;
+  printed: <T>(run: () => T) => T;
+} {
   const instance = useRef<Promise<Osmd> | null>(null);
   const [status, setStatus] = useState<DrawingStatus>("loading");
   const [drawn, setDrawn] = useState<DrawnScore | null>(null);
   const width = useRef(0);
+  const inkNow = useRef(ink);
+  inkNow.current = ink;
 
   useEffect(() => {
     if (!container.current || !document || text === null) return undefined;
@@ -41,6 +57,7 @@ export function useDrawing(
       const { osmd, point } = await instance.current!;
       await osmd.load(text);
       if (cancelled) return;
+      osmd.setOptions(inkOptions(inkNow.current));
       osmd.render();
       width.current = element.clientWidth;
       setDrawn(indexDrawing(osmd, point, document.root));
@@ -53,6 +70,22 @@ export function useDrawing(
     };
   }, [container, document, text]);
 
+  const redraw = useCallback(
+    (score: DrawnScore, colour: string) => {
+      if (!document) return;
+      score.osmd.setOptions(inkOptions(colour));
+      score.osmd.render();
+      setDrawn(indexDrawing(score.osmd, score.point, document.root));
+    },
+    [document],
+  );
+
+  // Drawn again in a new theme's ink.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new ink redraws here; the drawing itself is redrawn above.
+  useEffect(() => {
+    if (drawn) redraw(drawn, ink);
+  }, [ink]);
+
   // Drawn again at a new width (systems are laid out to fit), indexed again.
   useEffect(() => {
     const element = container.current;
@@ -62,10 +95,8 @@ export function useDrawing(
       if (Math.abs(element.clientWidth - width.current) < 2) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (!document) return;
         width.current = element.clientWidth;
-        drawn.osmd.render();
-        setDrawn(indexDrawing(drawn.osmd, drawn.point, document.root));
+        redraw(drawn, inkNow.current);
       });
     });
     observer.observe(element);
@@ -73,7 +104,37 @@ export function useDrawing(
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [container, drawn, document]);
+  }, [container, drawn, redraw]);
+
+  const printed = useCallback(
+    <T>(run: () => T): T => {
+      if (!drawn || inkNow.current === PRINTED_INK) return run();
+      drawn.osmd.setOptions(inkOptions(PRINTED_INK));
+      drawn.osmd.render();
+      try {
+        return run();
+      } finally {
+        redraw(drawn, inkNow.current);
+      }
+    },
+    [drawn, redraw],
+  );
+
+  // Printing draws black on white, then the theme's ink again.
+  useEffect(() => {
+    if (!drawn) return undefined;
+    const before = () => {
+      drawn.osmd.setOptions(inkOptions(PRINTED_INK));
+      drawn.osmd.render();
+    };
+    const after = () => redraw(drawn, inkNow.current);
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => {
+      window.removeEventListener("beforeprint", before);
+      window.removeEventListener("afterprint", after);
+    };
+  }, [drawn, redraw]);
 
   useEffect(
     () => () => {
@@ -83,5 +144,5 @@ export function useDrawing(
     [],
   );
 
-  return { status, drawn };
+  return { status, drawn, printed };
 }

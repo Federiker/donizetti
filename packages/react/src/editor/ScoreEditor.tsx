@@ -26,6 +26,7 @@ import {
 
 import { type DrawnScore, noteElementAt, selectionElementsOf } from "../drawing/drawn-score";
 import { useDrawing } from "../drawing/use-drawing";
+import { type Theme, useInk } from "../drawing/use-ink";
 import { runEdit } from "../editing/commands";
 import { ScoreHistory } from "../editing/history";
 import {
@@ -81,6 +82,8 @@ export type ScoreEditorProps = {
   strings?: Partial<Strings>;
   /** The host's own translation of the component's messages (decision 6). */
   t?: Translate;
+  /** Light, dark, or the system's colour scheme (the default); a dark score is drawn light on dark (decision 15). */
+  theme?: Theme;
   className?: string;
 };
 
@@ -115,7 +118,18 @@ function loadScore(source: ScoreEditorProps["source"]): Loaded {
  * file's bytes and receives them back on Save; the component reads and writes no files itself.
  */
 export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(function ScoreEditor(props, ref) {
-  const { source, fileName, readOnly = false, soundfont, onChange, onSave, onExport, strings, t: hostT } = props;
+  const {
+    source,
+    fileName,
+    readOnly = false,
+    soundfont,
+    onChange,
+    onSave,
+    onExport,
+    strings,
+    t: hostT,
+    theme = "auto",
+  } = props;
   const t = useMemo(() => createTranslate({ strings, t: hostT }), [strings, hostT]);
   const loaded = useMemo(() => loadScore(source), [source]);
   const history = "history" in loaded ? loaded.history : null;
@@ -127,6 +141,8 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
   const [problem, setProblem] = useState<"edit" | "save" | null>(null);
   const [savedText, setSavedText] = useState<string | null>(null);
   const container = useRef<HTMLDivElement | null>(null);
+  const editor = useRef<HTMLElement | null>(null);
+  const ink = useInk(editor, theme);
 
   // A new file starts afresh.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the reset is what a new history means.
@@ -148,7 +164,7 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
   const map = useMemo(() => (document ? mapScore(document.root) : null), [document, version]);
   const name = fileName ?? t("score.untitled");
 
-  const drawing = useDrawing(container, document, text);
+  const drawing = useDrawing(container, document, text, ink);
   const drawn: DrawnScore | null = drawing.drawn;
   const player = useScorePlayer(drawn, soundfont, name);
 
@@ -207,7 +223,9 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
     async (kind: ExportKind): Promise<ExportedScore | null> => {
       if (!drawn) return null;
       const exported: ExportedScore =
-        kind === "midi" ? { kind, bytes: exportMidi(drawn.osmd.Sheet) } : { kind, pages: svgPages(container.current) };
+        kind === "midi"
+          ? { kind, bytes: exportMidi(drawn.osmd.Sheet) }
+          : { kind, pages: drawing.printed(() => svgPages(container.current)) };
       if (onExport) await onExport(exported);
       else if (exported.kind === "midi")
         downloadFile(exported.bytes, `${name.replace(/\.\w+$/, "")}.mid`, "audio/midi");
@@ -216,7 +234,7 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
       else window.print();
       return exported;
     },
-    [drawn, onExport, name],
+    [drawn, onExport, name, drawing],
   );
 
   const undo = useCallback(() => {
@@ -362,6 +380,8 @@ export const ScoreEditor = forwardRef<ScoreEditorHandle, ScoreEditorProps>(funct
   return (
     <TranslateProvider value={t}>
       <section
+        ref={editor}
+        data-theme={theme === "auto" ? undefined : theme}
         className={`dz-editor ${noteInput ? "dz-note-input" : ""} ${props.className ?? ""}`}
         aria-label={t("score.label", { name })}
       >

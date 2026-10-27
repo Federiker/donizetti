@@ -1,7 +1,7 @@
 /*
  * The score editor's styles (decision 5): plain CSS, every colour and size a `--dz-*` variable a host may set on
- * `.dz-editor` or an ancestor. The drawn score stays on its paper in every theme, as printed music is; light,
- * dark and forced colours change the tools around it.
+ * `.dz-editor` or an ancestor. In a dark theme the score is drawn light on dark paper (decision 15); the
+ * editor reads `--dz-ink` when it draws, so a host or forced colours can set it. Printing is black on white.
  */
 .dz-editor {
   --dz-font: system-ui, sans-serif;
@@ -36,6 +36,10 @@
     --dz-accent: #7aa2ff;
     --dz-accent-text: #0f1424;
     --dz-problem: #ff8a80;
+    --dz-paper: #1b1b1f;
+    --dz-ink: #e8e8ec;
+    --dz-selection: #7aa2ff;
+    --dz-cursor: #ffb347;
   }
 }
 
@@ -211,18 +215,10 @@
 }
 
 @media (forced-colors: active) {
-  .dz-sheet {
-    background: Canvas;
-  }
-
-  .dz-sheet svg [fill="#000000"],
-  .dz-sheet svg [fill="#000"] {
-    fill: CanvasText;
-  }
-
-  .dz-sheet svg [stroke="#000000"],
-  .dz-sheet svg [stroke="#000"] {
-    stroke: CanvasText;
+  /* The score is drawn in the system's text colour (the editor reads --dz-ink when drawing). */
+  .dz-editor {
+    --dz-paper: Canvas;
+    --dz-ink: CanvasText;
   }
 
   .dz-sheet .dz-selected,
@@ -247,6 +243,7 @@
 
   .dz-sheet {
     overflow: visible;
+    background: #ffffff;
     border: 0;
   }
 }
