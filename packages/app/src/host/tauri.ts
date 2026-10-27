@@ -65,8 +65,18 @@ async function exportScore(score: OpenScore, exported: ExportedScore): Promise<v
       await writeExport(path, pages[0] ?? "");
       return;
     }
-    // More than one page: each beside the chosen name, numbered from 1 (song-1.svg, song-2.svg…).
+    // More than one page: each beside the chosen name, numbered from 1 (song-1.svg, song-2.svg…). The dialog only
+    // asked about the name chosen, so the numbered files' names are said, and replacing them asked, first.
     const base = path.replace(/\.svg$/i, "");
+    const first = baseName(`${base}-1.svg`);
+    const last = baseName(`${base}-${pages.length}.svg`);
+    const write = await ask(fill(text.svgPagesQuestion, { count: pages.length, first, last }), {
+      title: text.svgPagesTitle,
+      kind: "info",
+      okLabel: text.svgPagesWrite,
+      cancelLabel: text.cancel,
+    });
+    if (!write) throw new Cancelled();
     for (const [index, page] of pages.entries()) await writeExport(`${base}-${index + 1}.svg`, page);
   } else {
     const path = await chooseSavePath(suggested(score, `${name}.pdf`), { name: text.pdfFiles, extensions: ["pdf"] });

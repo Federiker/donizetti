@@ -64,15 +64,15 @@ The first round (owner decisions, 27 October 2026; see
 - [x] A new score (decision 19): `newScore` and the demo app's New….
 - [x] Read-only: no Save, and a switch in the demo app.
 - [ ] Small things the first editing round left:
-  - [ ] A multi-page SVG export in the desktop app writes `name-2.svg` and on
+  - [x] A multi-page SVG export in the desktop app writes `name-2.svg` and on
     beside the chosen file without asking whether to replace them.
   - [ ] Measures inserted before the first among irregular numbers are 0a,
     then 0b before 0a (0a is taken): decide the order.
-  - [ ] The lyric field opens a little under the lyric line; place it on the
+  - [x] The lyric field opens a little under the lyric line; place it on the
     verse's own line.
-  - [ ] `@donizetti/react`'s "plays, pauses and stops" test failed once
+  - [x] `@donizetti/react`'s "plays, pauses and stops" test failed once
     under full-suite load: make it independent of timing.
-  - [ ] knip: `@testing-library/user-event` unused in packages/react, the
+  - [x] knip: `@testing-library/user-event` unused in packages/react, the
     `tauri` binary in packages/app, the `@tauri-apps/cli` catalog entry.
 - [x] Rust and the Tauri client ([the Tauri integration](docs/features/tauri.md)):
   - [x] `donizetti_soundfonts`: MuseScore General, pinned and checked, installed

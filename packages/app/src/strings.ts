@@ -43,6 +43,10 @@ export const appStrings = {
   changedOnDiskQuestion:
     "{name} was changed by another program since it was opened. Overwrite it with this score? The other program's changes will be lost.",
   overwrite: "Overwrite",
+  svgPagesTitle: "Several pages",
+  svgPagesQuestion:
+    "The score has {count} pages, written as {first} to {last}, replacing any files with those names. Write them?",
+  svgPagesWrite: "Write the pages",
 
   /** The desktop app's errors, by the code `@donizetti/tauri` gives them. */
   errors: {

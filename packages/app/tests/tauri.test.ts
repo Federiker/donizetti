@@ -138,13 +138,34 @@ describe("the Tauri host", () => {
     await tauriHost(false).export(onDisk, { kind: "svg", pages: ["<svg/>"] });
     expect(calls.slice(1).map((call) => header(call, "Donizetti-Path"))).toEqual([encodeURIComponent("/tmp/song.svg")]);
 
-    calls = mockTauri(({ command }) => (command === "plugin:dialog|save" ? "/tmp/song.svg" : null));
+    // Several pages: the numbered names are said, and replacing them asked, before anything is written.
+    calls = mockTauri(({ command }) => {
+      if (command === "plugin:dialog|save") return "/tmp/song.svg";
+      if (command === "plugin:dialog|message") return "Write the pages";
+      return null;
+    });
     await tauriHost(false).export(onDisk, { kind: "svg", pages: ["<svg>1</svg>", "<svg>2</svg>"] });
-    expect(calls.slice(1).map((call) => decodeURIComponent(header(call, "Donizetti-Path") ?? ""))).toEqual([
+    expect(calls[1]?.args).toMatchObject({
+      message:
+        "The score has 2 pages, written as song-1.svg to song-2.svg, replacing any files with those names. Write them?",
+    });
+    expect(calls.slice(2).map((call) => decodeURIComponent(header(call, "Donizetti-Path") ?? ""))).toEqual([
       "/tmp/song-1.svg",
       "/tmp/song-2.svg",
     ]);
-    expect(calls[2]?.args).toEqual(encoder.encode("<svg>2</svg>"));
+    expect(calls[3]?.args).toEqual(encoder.encode("<svg>2</svg>"));
+  });
+
+  it("writes no pages when replacing them is declined", async () => {
+    const calls = mockTauri(({ command }) => {
+      if (command === "plugin:dialog|save") return "/tmp/song.svg";
+      if (command === "plugin:dialog|message") return "Cancel";
+      return null;
+    });
+    await expect(
+      tauriHost(false).export(onDisk, { kind: "svg", pages: ["<svg>1</svg>", "<svg>2</svg>"] }),
+    ).rejects.toBeInstanceOf(Cancelled);
+    expect(commands(calls)).toEqual(["plugin:dialog|save", "plugin:dialog|message"]);
   });
 
   it("has the plugin make the PDF", async () => {
