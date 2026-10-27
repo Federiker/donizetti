@@ -3,4 +3,4 @@
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true
 # Names that are words in the docs, not code; ".." keeps Clippy's own list.
-doc-valid-idents = ["MusicXML", "MuseScore", "SoundFont", ".."]
+doc-valid-idents = ["MusicXML", "MuseScore", "SoundFont", "OpenSheetMusicDisplay", ".."]

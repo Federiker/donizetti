@@ -1,0 +1,20 @@
+[package]
+name = "donizetti_pdf"
+description = "SVG pages, as OpenSheetMusicDisplay draws them, to one PDF"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+pdf-writer.workspace = true
+serde.workspace = true
+svg2pdf.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
