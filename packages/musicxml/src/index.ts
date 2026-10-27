@@ -28,3 +28,19 @@ export {
 export type { TextEncoding } from "./text-encoding";
 export { ScoreEditError, type ScoreEditErrorCode } from "./edit/edit-error";
 export { edit } from "./edit/xml-edit";
+// Editing: lyrics, chord symbols and the score's structure.
+export type { ScorePosition } from "./edit/edit-context";
+export {
+  type Extend,
+  type Lyric,
+  type LyricInput,
+  lyricOf,
+  lyricRefusal,
+  lyricsOf,
+  nextLyricNote,
+  previousLyricNote,
+  readLyric,
+  removeLyric,
+  setLyric,
+  type Syllabic,
+} from "./edit/lyrics";
