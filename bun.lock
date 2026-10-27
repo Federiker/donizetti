@@ -18,6 +18,7 @@
     "packages/app": {
       "name": "@donizetti/app",
       "dependencies": {
+        "@donizetti/musicxml": "workspace:*",
         "@donizetti/react": "workspace:*",
         "@donizetti/tauri": "workspace:*",
         "@tauri-apps/api": "catalog:",

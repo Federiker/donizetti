@@ -12,6 +12,7 @@
     "icons": "tauri icon src/assets/logo.svg --output src-tauri/icons"
   },
   "dependencies": {
+    "@donizetti/musicxml": "workspace:*",
     "@donizetti/react": "workspace:*",
     "@donizetti/tauri": "workspace:*",
     "@tauri-apps/api": "catalog:",

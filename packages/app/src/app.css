@@ -44,3 +44,47 @@ body {
 .app-dirty {
   color: #e07b00;
 }
+
+.app-dialog {
+  max-width: 24rem;
+  padding: 16px 20px;
+  color: CanvasText;
+  background: Canvas;
+  border: 1px solid GrayText;
+  border-radius: 8px;
+}
+
+.app-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-dialog h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.app-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-dialog .app-check {
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-dialog-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.app-toggle {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}

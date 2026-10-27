@@ -1,3 +1,4 @@
+import { newScore, type NewScoreOptions } from "@donizetti/musicxml";
 import { type ExportedScore, type SavedScore, ScoreEditor } from "@donizetti/react";
 import { isTauri } from "@tauri-apps/api/core";
 import { useCallback, useMemo, useState } from "react";
@@ -8,6 +9,7 @@ import { messageOf } from "./host/messages";
 import { tauriHost } from "./host/tauri";
 import { useSoundfontDownload } from "./host/tauri-soundfont";
 import sample from "./samples/little-tune.musicxml?raw";
+import { NewScoreDialog } from "./NewScoreDialog";
 import { SoundfontOffer } from "./SoundfontOffer";
 import { appStrings as text } from "./strings";
 
@@ -22,6 +24,8 @@ export function App() {
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [picked, setPicked] = useState<Uint8Array | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
   const fromUrl = useMemo(soundfontFromUrl, []);
   const soundfont = useMemo(() => (picked ? async () => picked : fromUrl), [picked, fromUrl]);
   const soundfontFailed = useCallback((error: unknown) => setMessage(messageOf(error, text.soundfontFailed)), []);
@@ -42,14 +46,28 @@ export function App() {
     }
   }, [host]);
 
+  /** A new lead sheet (decision 19): not on disk yet, so the first Save asks where. */
+  const create = useCallback((options: NewScoreOptions) => {
+    const name = `${(options.title || text.untitled).replace(/[\\/:*?"<>|]/g, "")}.musicxml`;
+    setScore({ name, bytes: new TextEncoder().encode(newScore(options)) });
+    setDirty(false);
+    setMessage(null);
+    setCreating(false);
+  }, []);
+
   const save = useCallback(
     async (file: SavedScore) => {
       try {
         setScore(await host.save(score, file));
         setMessage(text.saved);
+        return true;
       } catch (error) {
-        setMessage(error instanceof Cancelled ? text.notSaved : messageOf(error, text.saveFailed));
-        // The editor keeps the score as unsaved.
+        if (error instanceof Cancelled) {
+          setMessage(text.notSaved);
+          // Not saved, but nothing went wrong: the editor keeps the score unsaved and says nothing more.
+          return false;
+        }
+        setMessage(messageOf(error, text.saveFailed));
         throw error;
       }
     },
@@ -72,6 +90,9 @@ export function App() {
     <main className="app">
       <header className="app-header">
         <h1>{text.title}</h1>
+        <button type="button" onClick={() => setCreating(true)}>
+          {text.new}
+        </button>
         <button type="button" onClick={() => void open()}>
           {text.open}
         </button>
@@ -84,6 +105,10 @@ export function App() {
           </button>
         )}
         {host.kind === "tauri" && <SoundfontOffer download={download} />}
+        <label className="app-toggle">
+          <input type="checkbox" checked={readOnly} onChange={(event) => setReadOnly(event.target.checked)} />
+          {text.readOnly}
+        </label>
         <span className="app-file">
           {score.name}
           {dirty && (
@@ -97,11 +122,13 @@ export function App() {
       <ScoreEditor
         source={score.bytes}
         fileName={score.name}
+        readOnly={readOnly}
         soundfont={host.soundfont}
         onChange={(change) => setDirty(change.dirty)}
         onSave={save}
         onExport={exportScore}
       />
+      <NewScoreDialog open={creating} onCreate={create} onClose={() => setCreating(false)} />
     </main>
   );
 }
