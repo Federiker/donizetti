@@ -95,7 +95,7 @@ contents; keep durable findings in tracked documentation.
 | --- | --- |
 | `mise run dev` | The demo app in the browser (Vite) |
 | `mise run tauri:dev` | The demo app as a native window |
-| `mise run build` | Every package's `dist/`, then the demo app |
+| `mise run build` | The demo app's production build |
 | `mise run test` | The TypeScript tests (Vitest) |
 | `mise run coverage` | The same, failing below 80% |
 | `mise run rust:test` | The Rust tests (nextest when installed) |

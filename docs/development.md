@@ -68,10 +68,15 @@ Owner decisions, 27 October 2026, for the first round (slices in the
     bytes (or a function that loads them); nothing large is bundled. The Tauri
     plugin downloads MuseScore General (MIT, 38 MB as SF3, checksum
     verified), as jerome does; the web demo loads it from a URL.
-11. **Distribution: git dependencies now, npm and crates.io later.**
-    Packages build to `dist/` with their types, so jerome can depend on them
-    from GitHub (or by `link:`) before anything is published. The repository
-    is meant for `github.com/Federiker/donizetti`.
+11. **Distribution: by path or git now, npm and crates.io later.** The
+    packages export their TypeScript sources (`"exports": "./src/index.ts"`),
+    as jerome's own packages do, so a Vite and TypeScript app uses them
+    without a build step. Bun cannot install one folder of a git monorepo, so
+    jerome depends on the npm packages by path (`link:` or `file:` to a
+    checkout) and on the crates by git (`tauri-plugin-donizetti = { git =
+    "https://github.com/Federiker/donizetti" }`, pinned to a commit) or by
+    path. Builds to `dist/` with declarations come with publishing. The
+    repository is meant for `github.com/Federiker/donizetti`.
 12. **Tooling, as in jerome:** mise pins the tools (`mise.toml`), Bun runs
     the packages, Biome formats and lints, Vitest and Playwright test,
     lefthook runs the hooks (Biome and rustfmt before a commit, the

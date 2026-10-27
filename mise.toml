@@ -38,14 +38,8 @@ run = "bun run --filter @donizetti/app tauri:dev"
 
 # Build.
 [tasks.build]
-description = "Every package's build, then the demo app's frontend"
-run = [
-  "bun run --filter @donizetti/musicxml build",
-  "bun run --filter @donizetti/playback build",
-  "bun run --filter @donizetti/tauri build",
-  "bun run --filter @donizetti/react build",
-  "bun run --filter @donizetti/app build",
-]
+description = "The demo app's production build (the packages are used from their sources)"
+run = "bun run --filter @donizetti/app build"
 
 [tasks.clean]
 description = "Remove build outputs"
