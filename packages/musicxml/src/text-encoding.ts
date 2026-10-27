@@ -35,6 +35,11 @@ export function decodeText(bytes: Uint8Array): { text: string; encoding: TextEnc
   if (declared === null || declared === "utf-8" || declared === "utf8") {
     return { text: new TextDecoder("utf-8").decode(bytes), encoding: { name: "utf-8", bom: false }, declared };
   }
+  // A file that says UTF-16 but has neither a byte order mark nor UTF-16's zero bytes was saved as UTF-8 (by an
+  // editor after the program that wrote it): it is read as UTF-8, as browsers do, and its declaration kept.
+  if (declared.startsWith("utf-16")) {
+    return { text: new TextDecoder("utf-8").decode(bytes), encoding: { name: "utf-8", bom: false }, declared: null };
+  }
   let decoder: TextDecoder;
   try {
     decoder = new TextDecoder(declared);

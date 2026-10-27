@@ -22,6 +22,9 @@ artifact = "artifact"
 # MusicXML's own element and attribute names (`<harmony>`, `color`, `<syllabic>`…) are spelt as the
 # W3C wrote them.
 syllabic = "syllabic"
+# Music words: tuplets (triplets and the like), written so in English and in MusicXML (`<tuplet>`).
+tuplet = "tuplet"
+tuplets = "tuplets"
 
 [files]
 extend-exclude = [

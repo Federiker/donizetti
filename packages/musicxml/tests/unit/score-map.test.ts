@@ -84,6 +84,7 @@ describe("noteAt", () => {
 
   it("finds the note starting at a moment, a timed note before a grace note", () => {
     expect(noteAt(map, 0, 0)!.pitch!.step).toBe("C");
+    expect(noteAt(map, 0, 0, { grace: true })!.pitch!.step).toBe("B");
     expect(noteAt(map, 0, 0.25)!.rest).toBe(true);
     expect(noteAt(map, 0, 0.1)).toBeNull();
     expect(noteAt(map, 9, 0)).toBeNull();

@@ -43,3 +43,12 @@ describe("text encodings", () => {
     expect(() => readScore(bytes)).toThrow(MusicXmlError);
   });
 });
+
+describe("a declaration that does not match the bytes", () => {
+  it("reads a UTF-8 file that declares UTF-16 as UTF-8, keeping its declaration", () => {
+    const text = `<?xml version='1.0' encoding='UTF-16' standalone='no'?>${SCORE}`;
+    const document = readScore(new TextEncoder().encode(text));
+    expect(document.root.getElementsByTagName("part-name")[0]!.textContent).toBe("Café");
+    expect(scoreText(document)).toBe(text);
+  });
+});

@@ -178,13 +178,17 @@ export function mapScore(root: Element, partIndex = 0): ScoreMap | null {
   return { part, partId: part.getAttribute("id") ?? "", measures };
 }
 
-/** What may tell apart notes that start at the same moment: the voice, the staff, the pitch drawn nearest. */
-export type NoteQuery = { voice?: string; staff?: number; midi?: number };
+/**
+ * What may tell apart notes that start at the same moment: the voice, the staff, whether it is a grace note (a
+ * grace note starts where the note it leads to does) and the pitch drawn nearest.
+ */
+export type NoteQuery = { voice?: string; staff?: number; grace?: boolean; midi?: number };
 
 /**
  * The note that starts at a moment of a measure (whole notes from its start): the click-to-XML mapping, from
- * where OpenSheetMusicDisplay draws a note to the `<note>` it came from. Among the notes starting there, grace
- * notes come last, and the voice, staff and pitch asked for decide; the nearest pitch wins in a chord.
+ * where OpenSheetMusicDisplay draws a note to the `<note>` it came from. Among the notes starting there, timed
+ * notes come before grace notes unless a grace note is asked for, and the voice, staff and pitch asked for
+ * decide; the nearest pitch wins in a chord.
  */
 export function noteAt(map: ScoreMap, measure: number, onset: number, query: NoteQuery = {}): MappedNote | null {
   const candidates = (map.measures[measure]?.notes ?? []).filter(
@@ -193,8 +197,8 @@ export function noteAt(map: ScoreMap, measure: number, onset: number, query: Not
       (query.voice === undefined || note.voice === query.voice) &&
       (query.staff === undefined || note.staff === query.staff),
   );
-  const timed = candidates.filter((note) => !note.grace);
-  const pool = timed.length > 0 ? timed : candidates;
+  const preferred = candidates.filter((note) => note.grace === (query.grace ?? false));
+  const pool = preferred.length > 0 ? preferred : candidates;
   if (query.midi === undefined || pool.length <= 1) return pool[0] ?? null;
   const distance = (note: MappedNote) => (note.pitch ? Math.abs(midiOf(note.pitch) - query.midi!) : 1000);
   return pool.reduce((best, note) => (distance(note) < distance(best) ? note : best));
