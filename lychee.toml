@@ -1,0 +1,6 @@
+# lychee checks the links in the Markdown docs (owner decision, 22 October 2026; see
+# docs/development.md, decision 10); `mise run links` passes it the Markdown files git tracks.
+# Offline: only links within the repository, so a site being down never fails a check; links to
+# headings (#fragments) are checked too.
+offline = true
+include_fragments = "full"

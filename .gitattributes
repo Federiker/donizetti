@@ -1,0 +1,57 @@
+# Normalise text in Git and use LF on every platform, independent of core.autocrlf.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF; PowerShell and shell scripts use LF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=lf
+*.sh text eol=lf
+
+# Keep text assets reviewable rather than sending them through LFS.
+*.svg text diff
+*.md text diff
+*.json text
+*.jsonl text
+*.toml text
+*.yml text
+*.yaml text
+*.lock text
+
+# Binary artwork, fonts and document fixtures belong in Git LFS.
+*.png filter=lfs diff=lfs merge=lfs -text !eol
+*.jpg filter=lfs diff=lfs merge=lfs -text !eol
+*.jpeg filter=lfs diff=lfs merge=lfs -text !eol
+*.gif filter=lfs diff=lfs merge=lfs -text !eol
+*.webp filter=lfs diff=lfs merge=lfs -text !eol
+*.avif filter=lfs diff=lfs merge=lfs -text !eol
+*.ico filter=lfs diff=lfs merge=lfs -text !eol
+*.icns filter=lfs diff=lfs merge=lfs -text !eol
+*.ttf filter=lfs diff=lfs merge=lfs -text !eol
+*.otf filter=lfs diff=lfs merge=lfs -text !eol
+*.woff filter=lfs diff=lfs merge=lfs -text !eol
+*.woff2 filter=lfs diff=lfs merge=lfs -text !eol
+*.pdf filter=lfs diff=lfs merge=lfs -text !eol
+*.docx filter=lfs diff=lfs merge=lfs -text !eol
+*.epub filter=lfs diff=lfs merge=lfs -text !eol
+
+# Bundled archives and native tools must not undergo line-ending conversion.
+*.zip filter=lfs diff=lfs merge=lfs -text !eol
+*.7z filter=lfs diff=lfs merge=lfs -text !eol
+*.gz filter=lfs diff=lfs merge=lfs -text !eol
+*.xz filter=lfs diff=lfs merge=lfs -text !eol
+*.zst filter=lfs diff=lfs merge=lfs -text !eol
+*.exe filter=lfs diff=lfs merge=lfs -text !eol
+*.dll filter=lfs diff=lfs merge=lfs -text !eol
+*.so filter=lfs diff=lfs merge=lfs -text !eol
+*.dylib filter=lfs diff=lfs merge=lfs -text !eol
+
+# Scores, sound and their archives.
+*.mxl filter=lfs diff=lfs merge=lfs -text !eol
+*.mid filter=lfs diff=lfs merge=lfs -text !eol
+*.sf2 filter=lfs diff=lfs merge=lfs -text !eol
+*.sf3 filter=lfs diff=lfs merge=lfs -text !eol
+
+# Other programs' MusicXML exports are test input byte for byte (round trips compare them exactly):
+# never normalised, still diffed as text.
+**/tests/fixtures/**/*.musicxml -text diff
+**/tests/fixtures/**/*.xml -text diff

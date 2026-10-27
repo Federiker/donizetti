@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "rust-lang.rust-analyzer",
+    "vadimcn.vscode-lldb",
+    "tauri-apps.tauri-vscode",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "oven.bun-vscode",
+    "tombi-toml.tombi"
+  ],
+  "unwantedRecommendations": ["esbenp.prettier-vscode", "tamasfe.even-better-toml"]
+}

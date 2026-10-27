@@ -1,0 +1,6 @@
+# Tests may unwrap and expect; the rest of the code reports errors or states its reason
+# (see `unwrap_used` and `expect_used` in Cargo.toml).
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+# Names that are words in the docs, not code; ".." keeps Clippy's own list.
+doc-valid-idents = ["MusicXML", "MuseScore", "SoundFont", ".."]

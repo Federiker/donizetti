@@ -1,0 +1,33 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // The packages' index exports are their public API, used by other apps: not reported.
+  "includeEntryExports": false,
+  "ignoreExportsUsedInFile": true,
+  "treatConfigHintsAsErrors": true,
+  // lychee comes from mise.toml (links.ts).
+  "ignoreBinaries": ["lychee"],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "optionalPeerDependencies": "error",
+    "unlisted": "error",
+    "binaries": "error",
+    "unresolved": "error",
+    "exports": "error",
+    "types": "error",
+    "nsExports": "error",
+    "nsTypes": "error",
+    "duplicates": "error",
+    "enumMembers": "error",
+    "namespaceMembers": "error",
+    "catalog": "error",
+    "catalogReferences": "error",
+    "cycles": "error"
+  },
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"]
+    }
+  }
+}

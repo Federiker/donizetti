@@ -1,0 +1,110 @@
+name: Checks
+
+# Pushes to main and every pull request run the checks, the E2E suite included,
+# on Linux (a branch with a pull request runs once); a manual run chooses the
+# platforms. Security advisories run weekly in advisories.yml, so a new
+# advisory never fails an unrelated push.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platforms to check
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - windows
+          - macos
+          - linux
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request cancels its older run; manual runs are kept.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+jobs:
+  checks:
+    name: Checks (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Linux for pushes and pull requests; the chosen platforms for a manual run.
+        os: >-
+          ${{ fromJSON(
+            github.event_name != 'workflow_dispatch' && '["ubuntu-latest"]' ||
+            inputs.platform == 'windows' && '["windows-latest"]' ||
+            inputs.platform == 'macos' && '["macos-latest"]' ||
+            inputs.platform == 'linux' && '["ubuntu-latest"]' ||
+            '["windows-latest", "macos-latest", "ubuntu-latest"]'
+          ) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      # Bun and the tools pinned in mise.toml; `mise run` runs its tasks (`mise run ci` runs these steps locally).
+      - uses: jdx/mise-action@v5
+      # The Rust toolchain pinned in rust-toolchain.toml.
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            file \
+            libssl-dev \
+            libxdo-dev
+      - run: bun install --frozen-lockfile
+      # Quick checks first.
+      # Biome: formatting and lint rules together (biome.json).
+      - run: mise run check
+      - run: mise run rust:fmt
+      - run: mise run spell
+      - run: mise run links
+      - run: mise run knip
+      - run: mise run licences
+      - run: mise run typecheck
+      - run: mise run rust:machete
+      - run: mise run rust:deny
+      # Then the builds and the tests.
+      - run: mise run rust:clippy
+      # The tests, with coverage at 80% or more (docs/development.md, decision 13).
+      - run: mise run coverage
+      # nextest does not run doctests; the workspace has none (run `cargo test --workspace --doc` too if that changes).
+      - run: mise run rust:coverage -- --profile ci
+      - name: Install Playwright browser and Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: mise run e2e:browser -- --with-deps
+      - name: Install Playwright browser
+        if: matrix.os != 'ubuntu-latest'
+        run: mise run e2e:browser
+      - run: mise run test:e2e
+      - run: mise run build
+      - name: Keep the Rust test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rust-tests-${{ matrix.os }}
+          path: |
+            target/nextest/ci/junit.xml
+            target/llvm-cov-target/nextest/ci/junit.xml
+          if-no-files-found: ignore

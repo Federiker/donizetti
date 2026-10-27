@@ -1,0 +1,34 @@
+# typos checks spelling in code and docs, in UK English (owner decision, 27 October 2026; see
+# docs/development.md, decision 12). Every allowed word below says why it is allowed.
+
+[default]
+locale = "en-gb"
+
+[default.extend-words]
+# Names other software fixes: serde's Serialize, CSS and the DOM (`color`, `center`, `behavior`), HTML's
+# <dialog>, Bun's `catalog`, OSMD's `Normalize…`, GitHub's upload-artifact action.
+serialize = "serialize"
+serializer = "serializer"
+serializes = "serializes"
+normalize = "normalize"
+normalized = "normalized"
+color = "color"
+colors = "colors"
+center = "center"
+behavior = "behavior"
+dialog = "dialog"
+catalog = "catalog"
+artifact = "artifact"
+# MusicXML's own element and attribute names (`<harmony>`, `color`, `<syllabic>`…) are spelt as the
+# W3C wrote them.
+syllabic = "syllabic"
+
+[files]
+extend-exclude = [
+  "*.lock",
+  # Other programs' files used as test input.
+  "LICENSE",
+  "**/tests/fixtures/",
+  "**/licences/",
+  "**/notices/",
+]

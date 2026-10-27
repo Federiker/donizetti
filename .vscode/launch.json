@@ -1,0 +1,28 @@
+{
+  // The demo app's Rust side is built with the `debugging` profile (full debug info, in target/debugging),
+  // so debugging does not invalidate the lighter everyday dev build. The interface comes from the
+  // Vite server, started by the `ui:dev` task.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Demo app (Windows, Visual Studio debugger)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debugging/donizetti_app.exe",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "app:prepare-debugging",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Demo app (CodeLLDB, macOS and Linux)",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["build", "--profile=debugging", "--package=donizetti_app"],
+        "filter": { "name": "donizetti_app", "kind": "bin" }
+      },
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "ui:dev"
+    }
+  ]
+}

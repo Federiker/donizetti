@@ -1,0 +1,12 @@
+{
+  "name": "@donizetti/tooling",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0",
+  "exports": {
+    "./tsconfig/*": "./tsconfig/*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

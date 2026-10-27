@@ -1,0 +1,12 @@
+{
+  "name": "@donizetti/e2e",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:"
+  }
+}

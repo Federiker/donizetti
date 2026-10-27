@@ -1,0 +1,1 @@
+{ "extends": "@donizetti/tooling/tsconfig/base.json", "files": [], "references": [{ "path": "./scripts" }] }

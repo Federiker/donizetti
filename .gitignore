@@ -1,0 +1,36 @@
+# Bun
+node_modules/
+bun.lockb
+
+# Rust
+target/
+
+# TypeScript incremental build information (kept in node_modules/.cache/tsc)
+*.tsbuildinfo
+
+# Builds
+dist/
+packages/app/src-tauri/gen/
+playwright-report/
+test-results/
+
+# Local editor / OS files
+.DS_Store
+Thumbs.db
+# Shared VS Code settings are tracked; anything else there stays personal.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+
+# Local downloads, research probes and disposable scripts
+/tmp/
+
+# Test coverage reports (`mise run coverage`)
+/coverage/
+packages/*/coverage/
+
+# Claude Code agents' worktrees (each a full checkout)
+/.claude/worktrees/

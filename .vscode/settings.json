@@ -1,0 +1,48 @@
+{
+  // Formatting: Biome for TypeScript, JavaScript, JSON and CSS (biome.json), rustfmt for Rust.
+  "editor.formatOnSave": true,
+  "editor.rulers": [120],
+  "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[javascript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[css]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" },
+  "[markdown]": { "editor.formatOnSave": false, "editor.rulers": [80] },
+  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
+
+  // TypeScript: the workspace's compiler, and imports without ".js".
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.preferences.importModuleSpecifierEnding": "minimal",
+  "js/ts.preferences.quoteStyle": "double",
+
+  // Rust: Clippy on save; rust-analyzer builds in its own folder (target/rust-analyzer)
+  // so it never blocks or invalidates `cargo build` and `cargo test`.
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.cargo.targetDir": true,
+
+  // MusicXML files are XML.
+  "files.associations": { "*.musicxml": "xml" },
+
+  // Keep build outputs, caches and scratch data out of search and the file watcher.
+  "search.exclude": {
+    "**/target": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/test-results": true,
+    "**/playwright-report": true,
+    "tmp": true,
+    "bun.lock": true,
+    "Cargo.lock": true
+  },
+  "files.watcherExclude": {
+    "**/target/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "tmp/**": true
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
+}

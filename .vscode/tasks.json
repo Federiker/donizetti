@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // The Vite server the demo app's debug build loads its interface from (devUrl, port 1430).
+      "label": "ui:dev",
+      "type": "shell",
+      "command": "mise run dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^never-matches$" },
+        "background": { "activeBegin": true, "beginsPattern": "VITE", "endsPattern": "Local:" }
+      }
+    },
+    {
+      // Full debug info for debugging sessions, in target/debugging (the `debugging` profile in Cargo.toml).
+      "label": "app:build-debugging",
+      "type": "cargo",
+      "command": "build",
+      "args": ["--profile", "debugging", "--package", "donizetti_app"],
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "app:prepare-debugging",
+      "dependsOn": ["ui:dev", "app:build-debugging"]
+    }
+  ]
+}

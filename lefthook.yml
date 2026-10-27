@@ -1,0 +1,28 @@
+# Git hooks (owner decision, 27 October 2026; see docs/development.md, decision 12). Installed by
+# scripts/install.sh / install.bat (`lefthook install`). Skip once with `git commit --no-verify`
+# only when you mean to; CI runs the same checks.
+
+pre-commit:
+  parallel: true
+  jobs:
+    # Format the staged files, apply Biome's safe lint fixes and stage the result; a lint error that has
+    # no safe fix stops the commit.
+    - name: biome
+      glob: "*.{js,mjs,cjs,ts,tsx,json,jsonc,css}"
+      run: bun x biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    - name: rustfmt
+      glob: "*.rs"
+      run: rustfmt {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    # The first line starts with a known [prefix] (README, "Git conventions").
+    - name: prefix
+      run: bun scripts/commit-message.ts {1}
+
+pre-push:
+  jobs:
+    - name: typecheck
+      run: mise run typecheck

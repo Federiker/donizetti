@@ -1,0 +1,49 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Weekly, grouped dependency updates (owner decision, 27 October 2026; see docs/development.md, decision 12).",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "7 days",
+  "commitMessagePrefix": "[deps]",
+  "commitMessageLowerCase": "never",
+  "labels": ["dependencies"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "groupName": "Tauri",
+      "matchPackageNames": ["@tauri-apps/**", "tauri", "tauri-*"]
+    },
+    {
+      "groupName": "Drawing and sound",
+      "matchPackageNames": ["opensheetmusicdisplay", "spessasynth_lib"]
+    },
+    {
+      "groupName": "Vitest and Vite",
+      "matchPackageNames": ["vitest", "@vitest/**", "vite", "@vitejs/**", "happy-dom", "jsdom"]
+    },
+    {
+      "groupName": "Testing Library and Playwright",
+      "matchPackageNames": ["@testing-library/**", "@playwright/test"]
+    },
+    {
+      "groupName": "Linting and formatting",
+      "matchPackageNames": ["@biomejs/biome", "knip", "typescript"]
+    },
+    {
+      "groupName": "Rust minor and patch updates",
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "groupName": "Developer tools (mise)",
+      "matchManagers": ["mise"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
+    }
+  ]
+}
