@@ -23,27 +23,26 @@ function letterIndex(letters: string): number {
 }
 
 /**
- * The measures lettered after one measure, the run's head (or after the start of the part): the new ones and,
- * when the head's number has no letters (12, or the start, as 0), the old ones numbered `<base><letters>` (12a,
- * 12b; 0a, 0b), which are Donizetti's. Any other number is the file's and heads the next run.
+ * The measures lettered after one measure, the run's head (or after the start of the part): the new ones and the
+ * old ones numbered `<base><letters>` with letters later than the head's (12a, 12b after 12; 12b, 12c after a
+ * file's own 12a after 11; 0a, 0b at the start), which are Donizetti's. Any other number is the file's and heads
+ * the next run; a head is never renumbered.
  */
 interface Run {
   /** The number the letters follow: 12 after 12 or 12a, 0 at the start. */
   base: string;
   /** The head's letter index (12a is 0), -1 when it has none: the members' letters come after it. */
   after: number;
-  /** Whether old measures numbered `<base><letters>` belong to the run, not only new ones. */
-  lettered: boolean;
   members: Element[];
 }
 
 /** The run after a measure numbered `head` (null for the start of the part). */
 function runAfter(head: string | null): Run {
-  if (head === null) return { base: "0", after: -1, lettered: true, members: [] };
+  if (head === null) return { base: "0", after: -1, members: [] };
   const match = /^(.*\d)([a-z]+)$/.exec(head);
   const after = match ? letterIndex(match[2]!) : -1;
-  if (after < 0) return { base: head, after: -1, lettered: true, members: [] };
-  return { base: match![1]!, after, lettered: false, members: [] };
+  if (after < 0) return { base: head, after: -1, members: [] };
+  return { base: match![1]!, after, members: [] };
 }
 
 /**
@@ -77,8 +76,9 @@ function letterRun(run: Run, measures: Element[], fresh: Set<Element>) {
  * that were numbered 1, 2, 3… (`first`, from `plainNumbering` before the change) are numbered so again from the
  * same start. Otherwise each new measure (`added`) takes the number of the measure before it with a letter (12a,
  * 12b; 0a, 0b… first), never refused, and the letters follow page order: the lettered measures after the same
- * number are lettered again where needed (a new measure before 12a is 12a, the old 12a 12b). The numbers the file
- * gave and those of runs that gained no measure are kept, so removing measures renumbers none.
+ * number, or after a file's own lettered number (12a after 11) with later letters, are lettered again where needed
+ * (a new measure before 12a is 12a, the old 12a 12b; in 11, 12a, 12b one before 12b is 12b, the old 12b 12c). The
+ * file's own numbers and those of runs that gained no measure are kept, so removing measures renumbers none.
  */
 export function numberMeasures(part: Element, first: number | null, added: Iterable<Element>) {
   const measures = childElements(part, "measure");
@@ -94,7 +94,7 @@ export function numberMeasures(part: Element, first: number | null, added: Itera
   let run = runAfter(null);
   for (const measure of measures) {
     const number = measure.getAttribute("number") ?? "";
-    const lettered = run.lettered && number.startsWith(run.base) && letterIndex(number.slice(run.base.length)) >= 0;
+    const lettered = number.startsWith(run.base) && letterIndex(number.slice(run.base.length)) > run.after;
     if (fresh.has(measure) || lettered) {
       run.members.push(measure);
       continue;

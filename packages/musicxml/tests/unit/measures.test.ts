@@ -359,25 +359,38 @@ describe("lettered measure numbers", () => {
     );
   });
 
-  it("never renumbers the file's lettered numbers that follow another number", () => {
-    const document = readScore(numbered(["11", "12a", "13"], OPENING + note("C"), note("D"), note("E")));
-    insertMeasures(document, 1, 1);
-    insertMeasures(document, 3, 1);
+  it("keeps the file's own lettered number, the measures added after it in page order", () => {
+    const document = readScore(numbered(["11", "12a"], OPENING + note("C"), note("D")));
+    const [after] = insertMeasures(document, 2, 1);
+    expect(scoreText(document)).toBe(numbered(["11", "12a", "12b"], OPENING + note("C"), note("D"), rest(4)));
+    // Between 12a and 12b: the new one is 12b, the old 12b 12c; 12a stays.
+    const [between] = insertMeasures(document, 2, 1);
     expect(scoreText(document)).toBe(
-      numbered(["11", "11a", "12a", "12b", "13"], OPENING + note("C"), rest(4), note("D"), rest(4), note("E")),
+      numbered(["11", "12a", "12b", "12c"], OPENING + note("C"), note("D"), rest(4), rest(4)),
     );
-    // 12b may be the file's too: it keeps its number, and the one before it takes the next letter free.
+    expect([between, after].map((measure) => number(measure!))).toEqual(["12b", "12c"]);
+    // Before 12a: the new one follows 11, and 12a still stays.
+    insertMeasures(document, 1, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["11", "11a", "12a", "12b", "12c"], OPENING + note("C"), rest(4), note("D"), rest(4), rest(4)),
+    );
+  });
+
+  it("keeps the gaps after the file's own lettered number, skipping the numbers other measures have", () => {
+    const contents = [OPENING + note("C"), note("D"), note("E"), note("F"), note("G"), note("A")];
+    const document = readScore(numbered(["11", "12a", "12b", "12c", "13", "12d"], ...contents));
+    removeMeasures(document, 2, 1);
+    const [d, , f, g, a] = contents.slice(1);
+    expect(scoreText(document)).toBe(numbered(["11", "12a", "12c", "13", "12d"], contents[0]!, d!, f!, g!, a!));
+    // After 12a comes 12b; 12c already follows it.
+    insertMeasures(document, 2, 1);
+    expect(scoreText(document)).toBe(
+      numbered(["11", "12a", "12b", "12c", "13", "12d"], contents[0]!, d!, rest(4), f!, g!, a!),
+    );
+    // Between 12b and 12c: the new one is 12c, the old 12c 12e, as 12d after 13 is the file's.
     insertMeasures(document, 3, 1);
     expect(scoreText(document)).toBe(
-      numbered(
-        ["11", "11a", "12a", "12c", "12b", "13"],
-        OPENING + note("C"),
-        rest(4),
-        note("D"),
-        rest(4),
-        rest(4),
-        note("E"),
-      ),
+      numbered(["11", "12a", "12b", "12c", "12e", "13", "12d"], contents[0]!, d!, rest(4), rest(4), f!, g!, a!),
     );
   });
 

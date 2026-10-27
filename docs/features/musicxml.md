@@ -220,11 +220,14 @@ of these back, its own exports included, as plain staff text, not as jumps.
   when such a run gains measures each takes the next letter after the one
   before it, unless it already has a later one. A new measure before 12a is
   12a and the old 12a 12b; in 12, 12a, 12c a new one after 12a is 12b and
-  12c stays. Any other number is the file's and is never changed: a 12a
-  after 11 keeps its number, and the new measures after it are 12b, 12c… in
-  the order they are added, since they cannot be told from the file's. A
-  file's own 12a right after 12 cannot be told from Donizetti's and is
-  lettered as they are. Removing measures renumbers none: the letters left
+  12c stays. A file's own lettered number (a 12a right after 11, not after a
+  12) heads a run too (owner decision, 27 October 2026): it never changes,
+  and the measures after it with later letters of the same number (12b,
+  12c…) are Donizetti's, kept in page order the same way. In 11, 12a a new
+  measure after 12a is 12b; one then put between 12a and 12b is 12b and the
+  old 12b 12c. Any other number is the file's and is never changed. A file's
+  own 12a right after 12 cannot be told from Donizetti's and is lettered as
+  they are. Removing measures renumbers none: the letters left
   keep their gaps (12, 12b, 12c), still in page order.
 
 ## Editing: notes and rhythm
