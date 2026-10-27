@@ -39,9 +39,10 @@ The first round (owner decisions, 27 October 2026; see
     and dots, rest, insert and delete with the bar refilled, notes split at
     the barline with ties.
   - [ ] Ties (`<tie>` and `<notations><tied>`), beams written by beat.
-  - [ ] Lyrics (syllabic, extend, verses), chord symbols (`<harmony>`).
-  - [ ] Key, time, tempo, repeat and ending barlines, measures added and
-    removed.
+  - [x] Lyrics (syllabic, extend, verses), chord symbols (`<harmony>`).
+  - [ ] Key and time.
+  - [x] Tempo, repeat and ending barlines, navigation marks (segno, coda,
+    D.C., D.S., Fine), measures added and removed.
 - [x] Playback (`@donizetti/playback`): jerome's score timing and MIDI file,
   the SpessaSynth player with the soundfont from the host, MIDI export
   ([Playback](docs/features/playback.md)). Sound itself is checked in the
@@ -97,4 +98,17 @@ The first round (owner decisions, 27 October 2026; see
 
 ## Awaiting owner decisions
 
-None.
+- What the lyric, chord-symbol and structure edits write where MuseScore
+  gave no answer (the conservative choice is in place; see
+  [the score document](docs/features/musicxml.md#editing-lyrics-chord-symbols-and-structure)):
+  - [ ] An ending's text when none is given: "1." (MuseScore's palette, as
+    remembered) or the bare number ("1", what its MusicXML import kept).
+  - [ ] Spellings naming kind and degrees together (C7sus4, C6/9, C2): their
+    degrees written with `print-object="no"` beside `text="7sus4"`, as
+    MusicXML 4.0 asks, where MuseScore writes `text="74"` with the degree
+    printed.
+  - [ ] New measures among measure numbers that are not 1, 2, 3…: numbered
+    after the one before with a letter (12a) or refused.
+  - [ ] Inserting measures first: only the opening `<attributes>` move to the
+    new first measure; the opening tempo and `<print>` layout stay on the
+    measure they were on.
