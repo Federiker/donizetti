@@ -95,8 +95,8 @@ describe("messages", () => {
     expect(t("readOnly.several_parts", { parts: 1 })).toBe("It has 1 part.");
     expect(t("readOnly.several_parts", { parts: 3 })).toBe("It has 3 parts.");
     expect(t("score.label", {})).toBe("Score: {name}");
-    const hosted = createTranslate({ t: (key) => (key === "toolbar.stop" ? "Stopp" : key) });
-    expect(hosted("toolbar.stop")).toBe("Stopp");
+    const hosted = createTranslate({ t: (key) => (key === "toolbar.stop" ? "Ferma" : key) });
+    expect(hosted("toolbar.stop")).toBe("Ferma");
     expect(hosted("toolbar.save")).toBe("Save");
   });
 });

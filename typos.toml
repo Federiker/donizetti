@@ -32,6 +32,8 @@ extend-exclude = [
   # Other programs' files used as test input.
   "LICENSE",
   "**/tests/fixtures/",
+  # Scores: MusicXML spells its elements as the W3C wrote them (`<millimeters>`).
+  "*.musicxml",
   "**/licences/",
   "**/notices/",
 ]
