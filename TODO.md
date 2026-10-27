@@ -97,7 +97,4 @@ The first round (owner decisions, 27 October 2026; see
 
 ## Awaiting owner decisions
 
-- The plugin's score and PDF commands take any path the window passes (the
-  capability is the boundary, as for Tauri's file plugin without a scope).
-  Should they be limited, for example to `.musicxml`, `.xml`, `.mxl` and
-  `.pdf` files, or to paths the user chose in a dialog?
+None.
