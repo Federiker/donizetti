@@ -25,6 +25,12 @@ In a dark theme the score is drawn light on dark:
 
 ![The same lead sheet in the dark theme](docs/screenshots/editor-dark.png)
 
+Note input with MuseScore's keys (eighths typed with 4, E, F, G, A), the palette beside the score, and lyrics typed under the notes:
+
+![Note input: four eighths entered, the cursor on the next note, the palette open](docs/screenshots/note-input.png)
+
+![A syllable typed in the lyric field under the first note, in the dark theme](docs/screenshots/lyrics-dark.png)
+
 What is built and what was decided are in [docs/](docs/README.md); remaining
 work is in [TODO.md](TODO.md).
 
