@@ -69,32 +69,73 @@ function setAccidental(note: Element, value: string) {
 }
 
 /**
- * Writes the `<accidental>`s of a measure as a reader needs them: on a note whose alteration differs from what
- * the key signature and the earlier notes of its step and octave in the measure give it (a natural when it
- * cancels one), on none that continues a tie. Accidentals no longer needed go, unless they are marked as a
- * courtesy (`cautionary`, `editorial`, `parentheses`, `bracket`) and still right; one already right is left as
- * written. Microtonal alterations keep the accidental they have.
+ * What a note is and needs, for an edit to tell which accidentals it changed: its pitch, and the alteration a
+ * reader needs shown on it (null when none is needed; a microtone keeps what it has).
  */
-export function writeAccidentals(map: ScoreMap, index: number) {
-  const measure = map.measures[index];
-  if (!measure) return;
+export type AccidentalNeed = { pitch: string; needed: number | null };
+
+/**
+ * What each pitched note of a measure needs: an alteration shown when it differs from what the key signature
+ * and the earlier notes of its step and octave in the measure give it (a natural when it cancels one), none on a
+ * note that continues a tie. A tie from the measure before does not count for the later notes, so they show
+ * theirs.
+ */
+function needsOf(measure: MappedMeasure): { note: MappedNote; need: AccidentalNeed; microtone: boolean }[] {
   // The alteration each step and octave is read with so far: the key's, then the last note's of it.
   const state = new Map<string, number>();
+  const needs: { note: MappedNote; need: AccidentalNeed; microtone: boolean }[] = [];
   for (const note of measure.notes) {
     const pitch = note.pitch;
     if (!pitch) continue;
     const key = `${pitch.step}${pitch.octave}`;
     const current = state.get(key) ?? keyAlteration(measure.fifths, pitch.step);
-    const accidental = childElement(note.element, "accidental");
+    const written = `${key}${pitch.alter}`;
     if (!Number.isInteger(pitch.alter) || Math.abs(pitch.alter) > 2) {
       state.set(key, pitch.alter);
+      needs.push({ note, need: { pitch: written, needed: null }, microtone: true });
       continue;
     }
-    const shown = accidental ? SHOWN[(accidental.textContent ?? "").trim()] : undefined;
     const { tied, fromEarlierMeasure } = tiedOver(note);
     if (!(tied && fromEarlierMeasure)) state.set(key, pitch.alter);
-    if (!tied && pitch.alter !== current) {
-      if (shown !== pitch.alter) setAccidental(note.element, WRITTEN[pitch.alter]!);
+    const needed = !tied && pitch.alter !== current ? pitch.alter : null;
+    needs.push({ note, need: { pitch: written, needed }, microtone: false });
+  }
+  return needs;
+}
+
+/** What every pitched note of the part needs (`needsOf`), read before an edit. */
+export function accidentalNeeds(map: ScoreMap): Map<Element, AccidentalNeed> {
+  const needs = new Map<Element, AccidentalNeed>();
+  for (const measure of map.measures) {
+    for (const { note, need } of needsOf(measure)) needs.set(note.element, need);
+  }
+  return needs;
+}
+
+/**
+ * Writes the `<accidental>`s of a measure as a reader needs them (`needsOf`). A note that needs one gets it
+ * (an `<accidental>` already showing it is left as written); an accidental no longer needed goes, unless it is
+ * marked as a courtesy (`cautionary`, `editorial`, `parentheses`, `bracket`) and still right. Microtonal
+ * alterations keep the accidental they have.
+ *
+ * Given what the notes needed before an edit (`accidentalNeeds`), only the notes the edit changed are written
+ * (owner decision, 27 October 2026): a note new or changed in pitch, and a note whose need changed with it (a
+ * later note of the same step and octave in the measure, the notes of a measure in a new key or new bars, the
+ * end of a tie undone). Every other note keeps its accidental as written, another program's unmarked courtesy
+ * accidentals included.
+ */
+export function writeAccidentals(map: ScoreMap, index: number, before?: Map<Element, AccidentalNeed>) {
+  const measure = map.measures[index];
+  if (!measure) return;
+  for (const { note, need, microtone } of needsOf(measure)) {
+    if (microtone) continue;
+    const was = before?.get(note.element);
+    if (before && was && was.pitch === need.pitch && was.needed === need.needed) continue;
+    const pitch = note.pitch!;
+    const accidental = childElement(note.element, "accidental");
+    const shown = accidental ? SHOWN[(accidental.textContent ?? "").trim()] : undefined;
+    if (need.needed !== null) {
+      if (shown !== need.needed) setAccidental(note.element, WRITTEN[need.needed]!);
       continue;
     }
     if (!accidental) continue;

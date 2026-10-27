@@ -31,7 +31,8 @@ function addToStart(measure: Element, element: Element) {
 /**
  * Sets the key signature from a measure on (−7 to 7 fifths, sharps positive), in the `<attributes>` it starts with
  * (made when missing); a key that would repeat the one in force is removed instead. Pitches stay as they are:
- * the accidentals are written again in every measure up to the next key change. Returns the `<key>`, or null
+ * up to the next key change, the accidentals the new key makes wrong or needed are written again, those that were
+ * merely courtesy left as they are (`writeAccidentals`). Returns the `<key>`, or null
  * when the measure is left with none.
  */
 export function setKey(document: ScoreDocument, measure: number, fifths: number): Element | null {

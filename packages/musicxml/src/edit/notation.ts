@@ -13,9 +13,9 @@ function mapWith(root: Element, measure: number): ScoreMap {
 }
 
 /**
- * Writes a measure's `<accidental>`s as a reader needs them, against the key signature and the earlier notes of
- * each step and octave in the measure (`writeAccidentals`). Every note and rhythm edit does this for the
- * measures it touches.
+ * Writes every `<accidental>` of a measure as a reader needs them, against the key signature and the earlier
+ * notes of each step and octave in the measure (`writeAccidentals`), unmarked courtesy accidentals removed: an
+ * explicit tool. The note and rhythm edits write only the accidentals of the notes they change.
  */
 export function updateAccidentals(document: ScoreDocument, measure: number) {
   operate(document, [], (root) => writeAccidentals(mapWith(root, measure), measure));

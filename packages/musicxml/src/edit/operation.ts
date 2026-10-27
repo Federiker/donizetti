@@ -1,7 +1,7 @@
 import { mapScore, partsOf } from "../score-map";
 import type { ScoreDocument } from "../score-document";
 import { childElements } from "../xml";
-import { writeAccidentals } from "./accidentals";
+import { type AccidentalNeed, accidentalNeeds, writeAccidentals } from "./accidentals";
 import { rebeamMeasure } from "./beams";
 import { editableMap } from "./edit-context";
 import { ScoreEditError } from "./edit-error";
@@ -29,12 +29,19 @@ export function pitchesChanged(changes: Changes, root: Element, notes: Iterable<
   }
 }
 
-/** Writes again what follows from the changes: beams, then stems, then accidentals. */
+/** What each note's accidental needed before the edit under way on a tree (`operate`), by the tree's root. */
+const needsBefore = new WeakMap<Element, Map<Element, AccidentalNeed>>();
+
+/**
+ * Writes again what follows from the changes: beams, then stems, then accidentals, those only on the notes the
+ * edit changed (`writeAccidentals` given what the notes needed before it).
+ */
 export function finish(root: Element, changes: Changes) {
   const map = mapScore(root)!;
   for (const index of changes.rhythm) rebeamMeasure(map, index);
   updateStems(changes.notes);
-  for (const index of new Set([...changes.rhythm, ...changes.pitches])) writeAccidentals(map, index);
+  const before = needsBefore.get(root);
+  for (const index of new Set([...changes.rhythm, ...changes.pitches])) writeAccidentals(map, index, before);
 }
 
 /** The element at the same place in another copy of the tree. */
@@ -60,10 +67,19 @@ export function operate<T>(document: ScoreDocument, notes: Element[], run: (root
       throw new ScoreEditError("not_in_score");
     }
   }
+  // What the notes' accidentals need is read first, for `finish` to leave alone those the edit does not change.
+  const attempt = (root: Element, targets: Element[]) => {
+    needsBefore.set(root, accidentalNeeds(mapScore(root)!));
+    try {
+      return run(root, targets);
+    } finally {
+      needsBefore.delete(root);
+    }
+  };
   const copy = (document.xml.cloneNode(true) as XMLDocument).documentElement;
-  run(
+  attempt(
     copy,
     notes.map((note) => counterpart(note, document.root, copy)),
   );
-  return edit(document, () => run(document.root, notes));
+  return edit(document, () => attempt(document.root, notes));
 }

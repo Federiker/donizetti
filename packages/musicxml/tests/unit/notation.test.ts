@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readScore, rebeam, scoreText, updateAccidentals } from "../../src";
+import { readScore, rebeam, scoreText, setKey, setPitch, updateAccidentals, writeNote } from "../../src";
 import { keyAlteration } from "../../src/edit/accidentals";
 import { beamBreaks } from "../../src/edit/beams";
 import { middleLine, updateStems } from "../../src/edit/stems";
@@ -72,6 +72,59 @@ describe("accidentals", () => {
     const document = readScore(text);
     updateAccidentals(document, 1);
     expect(accidentals(scoreText(document))).toEqual(["-", "sharp", "-", "sharp"]);
+  });
+
+  it("rewrites in an edit only the notes it changed, another program's courtesy accidentals kept", () => {
+    const sharp = "<accidental>sharp</accidental>";
+    const text = score(
+      attributes(1) +
+        pitched("F", 1, 4, 1, "quarter", sharp) +
+        pitched("G", 0, 4, 1, "quarter") +
+        // An unmarked courtesy sharp, as another program may write it.
+        pitched("F", 1, 4, 1, "quarter", sharp) +
+        pitched("A", 0, 4, 1, "quarter"),
+    );
+    const document = readScore(text);
+    const notes = Array.from(document.root.getElementsByTagName("note"));
+    setPitch(document, notes[1]!, { step: "B", alter: -1, octave: 4 });
+    expect(accidentals(scoreText(document))).toEqual(["sharp", "flat", "sharp", "-"]);
+    writeNote(
+      document,
+      { measure: 0, onset: 0.75 },
+      { pitch: { step: "A", alter: 0, octave: 4 }, length: { type: "quarter" } },
+    );
+    expect(accidentals(scoreText(document))).toEqual(["sharp", "flat", "sharp", "-"]);
+    // Asked for the whole measure, the courtesy sharp goes.
+    updateAccidentals(document, 0);
+    expect(accidentals(scoreText(document))).toEqual(["sharp", "flat", "-", "-"]);
+  });
+
+  it("rewrites the later notes of the same step and octave that a changed pitch affects", () => {
+    const text = score(
+      attributes(1) +
+        pitched("F", 0, 4, 1, "quarter") +
+        pitched("F", 1, 4, 1, "quarter", "<accidental>sharp</accidental>") +
+        pitched("F", 1, 4, 1, "quarter") +
+        pitched("F", 1, 5, 1, "quarter", "<accidental>sharp</accidental>"),
+    );
+    const document = readScore(text);
+    setPitch(document, document.root.getElementsByTagName("note")[0]!, { step: "F", alter: 1, octave: 4 });
+    // The second note's sharp is no longer needed; the F sharp an octave up is another step and octave.
+    expect(accidentals(scoreText(document))).toEqual(["sharp", "-", "-", "sharp"]);
+  });
+
+  it("rewrites in a new key what it makes wrong or needed, courtesy accidentals left alone", () => {
+    const text = score(
+      attributes(1) +
+        pitched("F", 1, 4, 1, "quarter", "<accidental>sharp</accidental>") +
+        pitched("F", 1, 4, 1, "quarter", "<accidental>sharp</accidental>") +
+        pitched("C", 0, 4, 1, "quarter", "<accidental>natural</accidental>") +
+        pitched("F", 0, 5, 1, "quarter"),
+    );
+    const document = readScore(text);
+    setKey(document, 0, 1);
+    // In G major: the needed sharp goes, the courtesy ones stay, the F an octave up now needs a natural.
+    expect(accidentals(scoreText(document))).toEqual(["-", "sharp", "natural", "natural"]);
   });
 
   it("leaves MuseScore's measures as they are when they are right", () => {

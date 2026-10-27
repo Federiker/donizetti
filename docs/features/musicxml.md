@@ -227,7 +227,8 @@ score map; `{ measure: measures.length, onset: 0 }` is the end of the score.
 
 After every edit, what follows from it is written again in the measures it
 touched: beams (when the rhythm changed), stems (of the notes changed, their
-chords and beamed groups) and accidentals (also in the measures of tie
+chords and beamed groups) and the accidentals of the notes it changed (see
+[Accidentals](#accidentals-beams-and-stems); also in the measures of tie
 partners whose ties changed). New elements go where MusicXML's schema puts
 them, laid out as their siblings are, MuseScore's hanging end tags included;
 elements moved keep their own text, so a moved chord symbol is written back
@@ -342,7 +343,17 @@ for each tied piece) and `next`, the cursor's position after them.
   the later notes, so they show theirs. Accidentals no longer needed are
   removed unless marked as a courtesy (`cautionary`, `editorial`,
   `parentheses`, `bracket`) and still right; one already right is left as
-  written; microtones keep theirs.
+  written; microtones keep theirs. This is an explicit tool for the whole
+  measure: it also removes another program's unmarked courtesy accidentals.
+- **In an edit** (owner decision, 27 October 2026), only the notes whose pitch
+  changed (new notes included) and the notes whose need changed with them get
+  their `<accidental>` rewritten that way: the later notes of the same step
+  and octave in the measure that a changed pitch affects, the end of a tie
+  undone, the notes of bars made anew by re-barring. Every other note's
+  accidental stays as written, an unmarked courtesy accidental elsewhere in
+  the measure included. A key change (`setKey`) rewrites what the new key
+  makes wrong or needed (a sharp now in the key goes, a natural now needed is
+  added) and leaves alone the accidentals that were merely courtesy before it.
 - `rebeam(document, measure)`: `<beam number="1">` (and 2, 3… for 16ths,
   32nds) `begin`, `continue`, `end`, `forward hook`, `backward hook`, grouped
   as MuseScore 4 groups them by default: in 4/4, 2/2, 3/2 and 4/2 eighths by
@@ -366,8 +377,9 @@ for each tied piece) and `next`, the cursor's position after them.
 - `setKey(document, measure, fifths)` (−7 to 7) writes the `<key>` in the
   `<attributes>` the measure starts with, made after its `<print>` and left
   barline when missing; a key that would repeat the one in force is removed
-  instead (with `<attributes>` left empty). Pitches stay as they are: the
-  accidentals are written again up to the next key change. A non-traditional
+  instead (with `<attributes>` left empty). Pitches stay as they are: up to the
+  next key change, the accidentals the new key makes wrong or needed are
+  written again, courtesy ones left as they were. A non-traditional
   key becomes a traditional one.
 - `setTime(document, measure, beats, beatType)` writes the `<time>` the same
   way (a repeat of the one in force removed; `symbol="common"` or `cut`
