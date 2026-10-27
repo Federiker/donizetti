@@ -19,6 +19,12 @@ Gaetano Donizetti (1797–1848).
   editor does not touch is written back as it was.
 - **Saves** MusicXML and `.mxl`, and exports MIDI, SVG and PDF.
 
+![A lead sheet in the demo app: chord symbols, lyrics and a repeat, with a note selected](docs/screenshots/editor-light.png)
+
+In a dark theme the score is drawn light on dark:
+
+![The same lead sheet in the dark theme](docs/screenshots/editor-dark.png)
+
 What is built and what was decided are in [docs/](docs/README.md); remaining
 work is in [TODO.md](TODO.md).
 
