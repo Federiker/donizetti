@@ -137,7 +137,8 @@ run = "bun run --filter @donizetti/e2e test"
 [tasks."e2e:browser"]
 description = "Install Playwright's browser (--with-deps adds its Linux system packages)"
 dir = "tests/e2e"
-run = "playwright install chromium"
+# Through Bun: Playwright is a dependency of tests/e2e, so it is not in the root's node_modules/.bin.
+run = "bun x playwright install chromium"
 
 [tasks."rust:test"]
 description = "The Rust tests, with nextest when installed"
