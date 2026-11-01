@@ -139,8 +139,9 @@ Owner decisions, 27 October 2026, for the first round (slices in the
     commit-message prefix, the type-check before a push), typos checks
     spelling in UK English, knip finds unused code, lychee broken links,
     cargo-nextest, Clippy and cargo-deny check the Rust, Renovate updates
-    weekly, GitHub Actions runs `mise run ci`, and Git LFS holds binary
-    files. TypeScript sources are imported without an extension.
+    weekly, GitHub Actions runs what `mise run ci` runs and the advisories
+    when started by hand (no push, pull-request or scheduled runs), and Git
+    LFS holds binary files. TypeScript sources are imported without an extension.
 13. **Tests: 80% coverage or more** on every measure for TypeScript (lines,
     statements, functions, branches) and lines and regions for Rust; CI fails
     below. Each edit operation has its tests on plain XML, and round-trip

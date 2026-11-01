@@ -1,6 +1,6 @@
 # Git hooks (owner decision, 27 October 2026; see docs/development.md, decision 12). Installed by
 # scripts/install.sh / install.bat (`lefthook install`). Skip once with `git commit --no-verify`
-# only when you mean to; CI runs the same checks.
+# only when you mean to; `mise run ci` runs the same checks.
 
 pre-commit:
   parallel: true

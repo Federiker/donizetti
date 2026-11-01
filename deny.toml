@@ -1,7 +1,7 @@
 # cargo-deny: licences, bans, sources and security advisories for the Rust dependencies
 # (owner decision, 27 October 2026; see docs/development.md, decision 1 and 12).
-# `mise run audit` runs every check; CI runs licences, bans and sources on every push and the
-# advisories weekly.
+# `mise run audit` runs every check; `mise run ci` and the Checks workflow run licences, bans and
+# sources, and the Advisories workflow the advisories (both started by hand).
 
 [advisories]
 # Unmaintained crates count only when a Donizetti crate depends on them directly; the ones deep in

@@ -228,6 +228,12 @@ releases, under these names; the plugin is taken by git at a release's tag
 licences, the type-check, cargo-machete, cargo-deny, Clippy, the tests with
 coverage (80% or more), the end-to-end tests and the builds.
 
+The GitHub Actions workflows run only when started by hand, from the Actions
+tab: nothing runs on a push or a pull request, and nothing on a schedule.
+[Checks](.github/workflows/checks.yml) asks which platforms;
+[Advisories](.github/workflows/advisories.yml) looks up known vulnerabilities
+(`mise run audit` does the same locally).
+
 ## Git conventions
 
 [.gitattributes](.gitattributes) normalises text to LF, with CRLF for Windows
@@ -244,7 +250,7 @@ wrote them saved them.
 - **on the commit message**, the first line must start with a prefix below;
 - **before a push**, the type-check (`mise run typecheck`).
 
-`git commit --no-verify` skips them; CI runs the same checks anyway.
+`git commit --no-verify` skips them; `mise run ci` runs the same checks.
 
 ### Commit messages
 

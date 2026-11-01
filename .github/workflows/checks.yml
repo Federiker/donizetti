@@ -1,13 +1,9 @@
 name: Checks
 
-# Pushes to main and every pull request run the checks, the E2E suite included,
-# on Linux (a branch with a pull request runs once); a manual run chooses the
-# platforms. Security advisories run weekly in advisories.yml, so a new
-# advisory never fails an unrelated push.
+# Run by hand from the Actions tab: the checks, the E2E suite included, on the
+# platforms chosen. Security advisories are in advisories.yml, so a new advisory
+# never fails an unrelated check run.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
     inputs:
       platform:
@@ -24,11 +20,6 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same branch or pull request cancels its older run; manual runs are kept.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
-
 jobs:
   checks:
     name: Checks (${{ matrix.os }})
@@ -36,10 +27,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Linux for pushes and pull requests; the chosen platforms for a manual run.
+        # The platforms chosen for the run.
         os: >-
           ${{ fromJSON(
-            github.event_name != 'workflow_dispatch' && '["ubuntu-latest"]' ||
             inputs.platform == 'windows' && '["windows-latest"]' ||
             inputs.platform == 'macos' && '["macos-latest"]' ||
             inputs.platform == 'linux' && '["ubuntu-latest"]' ||
