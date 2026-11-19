@@ -15,7 +15,7 @@ bun add https://github.com/Federiker/donizetti/releases/download/v0.1.0/donizett
   it was read.
 - `soundfontStatus()`, `installSoundfont(onProgress?, { signal? })`,
   `readSoundfont()`, `removeSoundfont()`: MuseScore General, downloaded only
-  when asked.
+  when asked, or shipped with the app (`installed.bundled`, never removed).
 - `exportPdf(pages, path)`: the score's SVG pages as one PDF.
 - `writeExport(path, content)`: a MIDI file's bytes or an SVG page's text
   written to `path`, with no hash guard (ask before replacing a file).

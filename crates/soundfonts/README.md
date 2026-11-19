@@ -13,6 +13,11 @@ player and removes it. Its notice
 the acknowledgements and licence that must accompany it, is stored beside it
 as `MuseScore_General.sf3.LICENSE.md`.
 
+A host that ships the soundfont in its installer names that folder too
+(`Installer::with_bundled`): the file there, with its pinned size and its
+notice beside it, is used before the downloaded one (`installed()` says which,
+`bundled: true`), is read for the player and is never removed.
+
 Errors serialise as `{ code, params }` (`soundfont_download_failed` with
 `{ reason, status? }`, `soundfont_storage_failed` with `{ path, detail }`…).
 Tests are in `tests/unit`; two ignored tests check the real file

@@ -63,10 +63,24 @@ impl Soundfonts {
         }
     }
 
-    /// The folder the soundfont is kept in.
+    /// Also uses the soundfont the app ships in `folder` (its resources): the pinned file with its
+    /// notice beside it. Found there, it is used before the download folder's and never removed.
+    #[must_use]
+    pub fn with_bundled(mut self, folder: PathBuf) -> Self {
+        self.installer = self.installer.with_bundled(folder);
+        self
+    }
+
+    /// The folder the soundfont is downloaded to.
     #[must_use]
     pub fn folder(&self) -> &Path {
         self.installer.root()
+    }
+
+    /// The folder the app ships the soundfont in, if it named one.
+    #[must_use]
+    pub fn bundled_folder(&self) -> Option<&Path> {
+        self.installer.bundled_root()
     }
 
     #[must_use]
@@ -99,7 +113,8 @@ impl Soundfonts {
         Ok(Running(&self.installing))
     }
 
-    /// Downloads, checks and installs the soundfont, unless it is installed already. `progress`
+    /// Downloads, checks and installs the soundfont, unless it is installed already or bundled with
+    /// the app (then it only answers the status). `progress`
     /// receives how much has arrived: at the start, every 256 KiB and at the end.
     ///
     /// # Errors
@@ -138,7 +153,7 @@ impl Soundfonts {
         Ok(self.installer.read()?)
     }
 
-    /// Removes the soundfont and its notice.
+    /// Removes the downloaded soundfont and its notice; a bundled one stays (and stays in use).
     ///
     /// # Errors
     /// Returns the soundfont's `Busy` while a download runs, or `Storage`.

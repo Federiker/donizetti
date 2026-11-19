@@ -84,6 +84,57 @@ fn the_soundfont_lives_in_the_folder_the_app_chose() {
     assert!(!installed.path.exists());
 }
 
+/// A full-size stand-in for the pinned soundfont, with its notice, in `folder`.
+fn bundle(folder: &std::path::Path) {
+    fs::create_dir_all(folder).unwrap();
+    let file = fs::File::create(folder.join("MuseScore_General.sf3")).unwrap();
+    file.set_len(MUSESCORE_GENERAL.bytes).unwrap();
+    drop(file);
+    fs::write(folder.join("MuseScore_General.sf3.LICENSE.md"), "MIT").unwrap();
+}
+
+#[test]
+fn a_bundled_soundfont_is_played_and_never_removed() {
+    let folder = tempfile::tempdir().unwrap();
+    let resources = folder.path().join("resources");
+    let downloads = folder.path().join("downloads");
+    bundle(&resources);
+    let app = app(Builder::new()
+        .soundfont_dir(&downloads)
+        .bundled_soundfont_dir(&resources)
+        .build());
+    let handle = app.handle().clone();
+    assert_eq!(app.state::<Soundfonts>().bundled_folder(), Some(resources.as_path()));
+
+    let status = commands::soundfont_status(app.state::<Soundfonts>());
+    let installed = status.installed.unwrap();
+    assert!(installed.bundled);
+    assert!(installed.path.starts_with(&resources));
+    let json = serde_json::to_value(commands::soundfont_status(app.state::<Soundfonts>())).unwrap();
+    assert_eq!(json["installed"]["bundled"], true);
+
+    let channel = Channel::new(|_| panic!("nothing to download"));
+    let status = block_on(commands::install_soundfont(handle.clone(), channel)).unwrap();
+    assert!(status.installed.unwrap().bundled);
+    assert!(!downloads.exists(), "nothing was downloaded");
+    let bytes = raw(block_on(commands::read_soundfont(handle.clone())).unwrap());
+    assert_eq!(bytes.len() as u64, MUSESCORE_GENERAL.bytes);
+
+    let removed = block_on(commands::remove_soundfont(handle)).unwrap();
+    assert!(removed.installed.unwrap().bundled);
+    assert!(installed.path.exists());
+}
+
+#[test]
+fn a_bundled_resource_is_found_in_the_resource_folder() {
+    let app = app(Builder::new().bundled_soundfont_resource("soundfonts").build());
+    let soundfonts = app.state::<Soundfonts>();
+    assert_eq!(
+        soundfonts.bundled_folder(),
+        Some(app.path().resource_dir().unwrap().join("soundfonts").as_path())
+    );
+}
+
 #[test]
 fn by_default_the_soundfont_is_in_the_app_data_folder() {
     let app = app(crate::init());

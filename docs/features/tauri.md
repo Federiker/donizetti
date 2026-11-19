@@ -50,6 +50,25 @@ tauri::Builder::default()
 )
 ```
 
+An app that ships the soundfont in its installer puts the pinned file and
+its notice (`MuseScore_General.sf3` and `MuseScore_General.sf3.LICENSE.md`)
+in a folder of its resources (`bundle.resources` in `tauri.conf.json`) and
+names that folder, relative to `resource_dir()`, which is known only when the
+app starts:
+
+```rust
+.plugin(
+    tauri_plugin_donizetti::Builder::new()
+        .bundled_soundfont_resource("soundfonts")
+        .build(),
+)
+```
+
+(or `.bundled_soundfont_dir(folder)` for a folder it knows already). Found
+there with its pinned size and its notice, the bundled soundfont is played
+before any download, installing does nothing and removing leaves it; without
+it, the download works as before.
+
 The window's capability (`src-tauri/capabilities/*.json`) allows the
 commands:
 
@@ -124,22 +143,25 @@ The hash is SHA-256 in lower-case hexadecimal (64 characters).
 
 - `soundfont_status` says what is on offer (`soundfont`: name, version,
   licence, address, size, SHA-512, file name), whether it is installed
-  (`installed`: its `path`, its notice's `noticePath` and `bytes`, or null)
-  and whether a download is running (`installing`). A file counts as
-  installed when it has the pinned size; the download checks the bytes.
+  (`installed`: its `path`, its notice's `noticePath`, `bytes` and whether
+  the app ships it, `bundled`; or null) and whether a download is running
+  (`installing`). A file counts as installed when it has the pinned size;
+  the download checks the bytes. A bundled soundfont also needs its notice
+  beside it, and is used before a downloaded one.
 - `install_soundfont` downloads only when asked, over HTTPS from the pinned
   address (no redirects, no proxy), checking the size and SHA-512 as it
   arrives. It writes `MuseScore_General.sf3.part`, then renames it into place
   with its notice, `MuseScore_General.sf3.LICENSE.md` (the acknowledgements
   and MIT licence that must accompany it; a host's About shows it). A failed
-  or cancelled download leaves nothing behind. An installed soundfont is not
-  downloaded again. The channel hears `{ received, total }` at the start,
+  or cancelled download leaves nothing behind. An installed or bundled
+  soundfont is not downloaded again. The channel hears `{ received, total }` at the start,
   every 256 KiB and at the end. One download runs at a time.
 - `cancel_soundfont_install` stops the running download, which then fails
   with `soundfont_cancelled`; the client sends it when `signal` aborts.
 - `read_soundfont` answers the bytes as a binary message, for
-  `<ScoreEditor soundfont>`; `remove_soundfont` removes the file, its notice
-  and any half download.
+  `<ScoreEditor soundfont>`, the bundled one first; `remove_soundfont`
+  removes the downloaded file, its notice and any half download, never the
+  bundled soundfont (which then stays in use).
 
 ### PDF export
 

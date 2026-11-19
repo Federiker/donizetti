@@ -20,6 +20,8 @@ tauri::Builder::default()
     .plugin(tauri_plugin_donizetti::init())
     // or, with the soundfont somewhere other than app_data_dir()/soundfonts:
     // .plugin(tauri_plugin_donizetti::Builder::new().soundfont_dir(folder).build())
+    // or, with the soundfont shipped in the app's resources (resource_dir()/soundfonts):
+    // .plugin(tauri_plugin_donizetti::Builder::new().bundled_soundfont_resource("soundfonts").build())
 ```
 
 and `"donizetti:default"` in the window's capability. The commands, their

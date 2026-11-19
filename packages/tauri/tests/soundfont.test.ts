@@ -26,7 +26,12 @@ const notInstalled: SoundfontStatus = {
 
 const installed: SoundfontStatus = {
   ...notInstalled,
-  installed: { path: "data/soundfonts/MuseScore_General.sf3", noticePath: "data/n.md", bytes: 39_900_972 },
+  installed: {
+    path: "data/soundfonts/MuseScore_General.sf3",
+    noticePath: "data/n.md",
+    bytes: 39_900_972,
+    bundled: false,
+  },
 };
 
 describe("soundfontStatus", () => {
@@ -42,6 +47,7 @@ describe("soundfontStatus", () => {
       {},
       { ...notInstalled, soundfont: { name: 1 } },
       { ...notInstalled, installed: { path: 2 } },
+      { ...installed, installed: { path: "a.sf3", noticePath: "n.md", bytes: 1 } },
       { ...notInstalled, installing: "no" },
     ]) {
       mockPlugin(() => wrong);

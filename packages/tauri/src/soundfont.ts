@@ -15,11 +15,15 @@ export interface Soundfont {
   fileName: string;
 }
 
-/** The installed soundfont: where it is, where its notice (acknowledgements and licence) is, its size. */
+/**
+ * The soundfont in use: where it is, where its notice (acknowledgements and licence) is, its size, and
+ * whether the app ships it (bundled in its installer, never removed) rather than downloaded.
+ */
 export interface InstalledSoundfont {
   path: string;
   noticePath: string;
   bytes: number;
+  bundled: boolean;
 }
 
 export interface SoundfontStatus {
@@ -50,7 +54,12 @@ function status(command: string, answer: unknown): SoundfontStatus {
     !isRecord(answer.soundfont) ||
     typeof answer.soundfont.name !== "string" ||
     typeof answer.soundfont.bytes !== "number" ||
-    !(answer.installed === null || (isRecord(answer.installed) && typeof answer.installed.path === "string")) ||
+    !(
+      answer.installed === null ||
+      (isRecord(answer.installed) &&
+        typeof answer.installed.path === "string" &&
+        typeof answer.installed.bundled === "boolean")
+    ) ||
     typeof answer.installing !== "boolean"
   ) {
     throw invalidResponse(command, "not a soundfont status");
@@ -66,7 +75,7 @@ export async function soundfontStatus(): Promise<SoundfontStatus> {
 /**
  * Downloads MuseScore General (about 38 MB), checks its size and SHA-512 and installs it with its
  * notice; resolves to the new status. Only on the user's request: nothing is downloaded otherwise. An
- * installed soundfont is not downloaded again. `onProgress` hears at the start, every 256 KiB and at
+ * installed or bundled soundfont is not downloaded again. `onProgress` hears at the start, every 256 KiB and at
  * the end.
  *
  * @throws DonizettiPluginError `soundfont_busy`, `soundfont_cancelled`, `soundfont_download_failed`
@@ -103,7 +112,8 @@ export async function readSoundfont(): Promise<Uint8Array> {
 }
 
 /**
- * Removes the soundfont and its notice; resolves to the new status.
+ * Removes the downloaded soundfont and its notice; resolves to the new status. A bundled soundfont
+ * stays, and stays in use.
  *
  * @throws DonizettiPluginError `soundfont_busy` while it downloads, or `soundfont_storage_failed`.
  */

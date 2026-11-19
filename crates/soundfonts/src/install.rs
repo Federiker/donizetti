@@ -12,20 +12,26 @@ use crate::{
     soundfont::Soundfont,
 };
 
-/// The installed soundfont: where it is, where its notice is, and its size.
+/// The installed soundfont: where it is, where its notice is, its size, and whether it came with the
+/// host (bundled in its installer) rather than downloaded.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InstalledSoundfont {
     pub path: PathBuf,
     pub notice_path: PathBuf,
     pub bytes: u64,
+    pub bundled: bool,
 }
 
 /// Where a downloaded soundfont lives (a folder the host chooses, usually in its own data), and how
 /// it gets there. The soundfont is downloaded beside its final name, checked, then renamed into place
 /// with its notice, so a failed or cancelled download never leaves a half file behind.
+///
+/// A host that ships the soundfont with itself names that folder too ([`Installer::with_bundled`]):
+/// the bundled copy is then used first, and never removed.
 pub struct Installer {
     root: PathBuf,
+    bundled: Option<PathBuf>,
     soundfont: Soundfont,
 }
 
@@ -33,7 +39,26 @@ impl Installer {
     /// An installer for `soundfont` in the folder `root`, which is created on the first install.
     #[must_use]
     pub const fn new(root: PathBuf, soundfont: Soundfont) -> Self {
-        Self { root, soundfont }
+        Self {
+            root,
+            bundled: None,
+            soundfont,
+        }
+    }
+
+    /// Also looks for the soundfont in `folder`, which the host ships it in (its resources, read
+    /// only): the file under its pinned name and size, with its notice beside it
+    /// (`<file name>.LICENSE.md`). Found there, it is used before any download.
+    #[must_use]
+    pub fn with_bundled(mut self, folder: PathBuf) -> Self {
+        self.bundled = Some(folder);
+        self
+    }
+
+    /// The folder the host ships the soundfont in, if it named one.
+    #[must_use]
+    pub fn bundled_root(&self) -> Option<&Path> {
+        self.bundled.as_deref()
     }
 
     #[must_use]
@@ -47,30 +72,51 @@ impl Installer {
         &self.root
     }
 
-    /// Where the soundfont is, once installed.
+    /// Where the soundfont is, once downloaded.
     #[must_use]
     pub fn path(&self) -> PathBuf {
         self.root.join(self.soundfont.file_name)
     }
 
-    /// Where its notice is, once installed: the acknowledgements and licence that must accompany it.
+    /// Where its notice is, once downloaded: the acknowledgements and licence that must accompany it.
     #[must_use]
     pub fn notice_path(&self) -> PathBuf {
-        self.root.join(format!("{}.LICENSE.md", self.soundfont.file_name))
+        self.root.join(notice_name(&self.soundfont))
     }
 
     fn staged_path(&self) -> PathBuf {
         self.root.join(format!("{}.part", self.soundfont.file_name))
     }
 
-    /// The installed soundfont, if its file is there with the expected size.
+    /// The soundfont to use: the bundled one if there is one, else the downloaded one.
     #[must_use]
     pub fn installed(&self) -> Option<InstalledSoundfont> {
-        let metadata = fs::metadata(self.path()).ok()?;
-        (metadata.is_file() && metadata.len() == self.soundfont.bytes).then(|| InstalledSoundfont {
+        self.bundled().or_else(|| self.downloaded())
+    }
+
+    /// The soundfont the host ships, if its file is in the bundled folder with the expected size and
+    /// its notice beside it (a copy without its notice is not used: the notice must accompany it).
+    #[must_use]
+    pub fn bundled(&self) -> Option<InstalledSoundfont> {
+        let folder = self.bundled.as_deref()?;
+        let path = folder.join(self.soundfont.file_name);
+        let notice_path = folder.join(notice_name(&self.soundfont));
+        (has_size(&path, self.soundfont.bytes) && notice_path.is_file()).then_some(InstalledSoundfont {
+            path,
+            notice_path,
+            bytes: self.soundfont.bytes,
+            bundled: true,
+        })
+    }
+
+    /// The downloaded soundfont, if its file is there with the expected size.
+    #[must_use]
+    pub fn downloaded(&self) -> Option<InstalledSoundfont> {
+        has_size(&self.path(), self.soundfont.bytes).then(|| InstalledSoundfont {
             path: self.path(),
             notice_path: self.notice_path(),
             bytes: self.soundfont.bytes,
+            bundled: false,
         })
     }
 
@@ -119,34 +165,50 @@ impl Installer {
             let _ = fs::remove_file(staged);
             return Err(error);
         }
-        self.installed().ok_or_else(|| SoundfontError::Storage {
+        self.downloaded().ok_or_else(|| SoundfontError::Storage {
             path: self.path(),
             detail: "the installed file is not where it should be".to_owned(),
         })
     }
 
-    /// The installed soundfont's bytes, for the player.
+    /// The bytes of the soundfont in use (the bundled one first), for the player.
     ///
     /// # Errors
     /// Returns `NotInstalled` or `Storage`.
     pub fn read(&self) -> Result<Vec<u8>, SoundfontError> {
-        if self.installed().is_none() {
-            return Err(SoundfontError::NotInstalled);
-        }
-        let path = self.path();
+        let path = self.installed().ok_or(SoundfontError::NotInstalled)?.path;
         fs::read(&path).map_err(|error| SoundfontError::storage(&path, &error))
     }
 
-    /// Removes the soundfont, its notice and any half download; nothing to remove is fine.
+    /// Removes the downloaded soundfont, its notice and any half download; nothing to remove is fine.
+    /// The bundled soundfont is the host's and stays, even when its folder is the download folder.
     ///
     /// # Errors
     /// Returns `Storage` when a file could not be removed.
     pub fn uninstall(&self) -> Result<(), SoundfontError> {
+        let kept = self.bundled.as_ref().map(|folder| {
+            [
+                folder.join(self.soundfont.file_name),
+                folder.join(notice_name(&self.soundfont)),
+            ]
+        });
         for path in [self.path(), self.notice_path(), self.staged_path()] {
-            remove_if_present(&path)?;
+            if !kept.as_ref().is_some_and(|kept| kept.contains(&path)) {
+                remove_if_present(&path)?;
+            }
         }
         Ok(())
     }
+}
+
+/// The notice's file name, beside the soundfont: `<file name>.LICENSE.md`.
+fn notice_name(soundfont: &Soundfont) -> String {
+    format!("{}.LICENSE.md", soundfont.file_name)
+}
+
+/// Whether `path` is a file of exactly `bytes`.
+fn has_size(path: &Path, bytes: u64) -> bool {
+    fs::metadata(path).is_ok_and(|metadata| metadata.is_file() && metadata.len() == bytes)
 }
 
 fn remove_if_present(path: &Path) -> Result<(), SoundfontError> {

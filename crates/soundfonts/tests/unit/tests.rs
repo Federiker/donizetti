@@ -79,6 +79,94 @@ fn only_the_exact_pinned_file_is_installed_from_disk() {
     installer.uninstall().unwrap();
 }
 
+/// Puts `bytes` and, if `notice`, a notice in `folder`, as a host bundles the soundfont.
+fn bundle(folder: &std::path::Path, bytes: &[u8], notice: bool) {
+    fs::create_dir_all(folder).unwrap();
+    fs::write(folder.join("MuseScore_General.sf3"), bytes).unwrap();
+    if notice {
+        fs::write(folder.join("MuseScore_General.sf3.LICENSE.md"), "MIT").unwrap();
+    }
+}
+
+#[test]
+fn the_bundled_soundfont_is_used_before_the_downloaded_one() {
+    let directory = tempfile::tempdir().unwrap();
+    let resources = directory.path().join("resources");
+    let root = directory.path().join("data");
+    bundle(&resources, b"RIFF", true);
+    bundle(&root, b"RIFX", false);
+    let installer = Installer::new(root.clone(), pinned(b"RIFF")).with_bundled(resources.clone());
+    assert_eq!(installer.bundled_root(), Some(resources.as_path()));
+
+    let found = installer.installed().unwrap();
+    assert!(found.bundled);
+    assert_eq!(found.path, resources.join("MuseScore_General.sf3"));
+    assert_eq!(found.notice_path, resources.join("MuseScore_General.sf3.LICENSE.md"));
+    assert_eq!(found.bytes, 4);
+    assert_eq!(installer.read().unwrap(), b"RIFF");
+    let json = serde_json::to_value(&found).unwrap();
+    assert_eq!(json["bundled"], true);
+    assert!(json["noticePath"].is_string());
+
+    // Removing takes only the download; the bundled copy stays in use.
+    installer.uninstall().unwrap();
+    assert!(!root.join("MuseScore_General.sf3").exists());
+    assert!(resources.join("MuseScore_General.sf3").exists());
+    assert!(resources.join("MuseScore_General.sf3.LICENSE.md").exists());
+    assert!(installer.installed().unwrap().bundled);
+    assert!(installer.downloaded().is_none());
+}
+
+#[test]
+fn a_bundled_file_of_the_wrong_size_or_without_its_notice_is_ignored() {
+    let directory = tempfile::tempdir().unwrap();
+    let resources = directory.path().join("resources");
+    let root = directory.path().join("data");
+    let installer = Installer::new(root.clone(), pinned(b"RIFF")).with_bundled(resources.clone());
+    assert!(installer.bundled().is_none(), "no bundled folder at all");
+
+    bundle(&resources, b"RIFF and more", true);
+    assert!(installer.bundled().is_none());
+    bundle(&root, b"RIFF", false);
+    let found = installer.installed().unwrap();
+    assert!(!found.bundled);
+    assert_eq!(found.path, root.join("MuseScore_General.sf3"));
+    assert_eq!(installer.read().unwrap(), b"RIFF");
+
+    fs::remove_file(resources.join("MuseScore_General.sf3.LICENSE.md")).unwrap();
+    bundle(&resources, b"RIFF", false);
+    assert!(installer.bundled().is_none(), "the notice must accompany it");
+    assert!(!installer.installed().unwrap().bundled);
+}
+
+#[test]
+fn a_bundled_soundfont_in_the_download_folder_is_never_removed() {
+    let directory = tempfile::tempdir().unwrap();
+    let folder = directory.path().to_path_buf();
+    bundle(&folder, b"RIFF", true);
+    fs::write(folder.join("MuseScore_General.sf3.part"), b"RI").unwrap();
+    let installer = Installer::new(folder.clone(), pinned(b"RIFF")).with_bundled(folder.clone());
+    installer.uninstall().unwrap();
+    assert!(folder.join("MuseScore_General.sf3").exists());
+    assert!(folder.join("MuseScore_General.sf3.LICENSE.md").exists());
+    assert!(!folder.join("MuseScore_General.sf3.part").exists());
+    assert!(installer.installed().unwrap().bundled);
+}
+
+#[test]
+fn a_download_reports_the_downloaded_copy_even_with_a_bundled_one() {
+    let directory = tempfile::tempdir().unwrap();
+    let resources = directory.path().join("resources");
+    let root = directory.path().join("data");
+    bundle(&resources, b"RIFF", true);
+    let source = directory.path().join("font.sf3");
+    fs::write(&source, b"RIFF").unwrap();
+    let installer = Installer::new(root.clone(), pinned(b"RIFF")).with_bundled(resources);
+    let result = installer.install_from_file(&source).unwrap();
+    assert!(!result.bundled);
+    assert_eq!(result.path, root.join("MuseScore_General.sf3"));
+}
+
 #[test]
 fn a_missing_source_file_is_a_storage_error() {
     let directory = tempfile::tempdir().unwrap();
